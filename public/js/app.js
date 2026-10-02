@@ -11,10 +11,47 @@ document.addEventListener('DOMContentLoaded', async () => {
   const config = await API.getConfig();
   console.log('[CivicPulse] Initialized with backend engine:', config.engineName);
 
-  // Set default active channel to 'internships' to match the mockup
-  state.selectedCategory = 'EDUCATION';
-  state.selectedChannel = 'internships';
-  state.activeView = 'FEED';
+  // Check URL search params for deep links (e.g., ?channel=roads, ?category=MEDICAL)
+  const urlParams = new URLSearchParams(window.location.search);
+  const chParam = urlParams.get('channel');
+  const catParam = urlParams.get('category');
+  const viewParam = urlParams.get('view');
+
+  if (chParam) {
+    let matched = false;
+    for (const cat of state.categories) {
+      const ch = cat.channels.find((c) => c.id === chParam || c.name.toLowerCase() === chParam.toLowerCase());
+      if (ch) {
+        state.selectedCategory = cat.id;
+        state.selectedChannel = ch.id;
+        state.filters.categoryId = cat.id;
+        state.filters.channelId = ch.id;
+        state.activeView = 'FEED';
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      state.selectedCategory = 'EDUCATION';
+      state.selectedChannel = 'internships';
+      state.activeView = 'FEED';
+    }
+  } else if (catParam) {
+    const cat = state.categories.find((c) => c.id === catParam);
+    if (cat) {
+      state.selectedCategory = cat.id;
+      state.selectedChannel = cat.channels[0]?.id || 'ALL';
+      state.filters.categoryId = cat.id;
+      state.filters.channelId = state.selectedChannel;
+      state.activeView = 'FEED';
+    }
+  } else if (viewParam === 'home') {
+    state.activeView = 'HOME';
+  } else {
+    state.selectedCategory = 'EDUCATION';
+    state.selectedChannel = 'internships';
+    state.activeView = 'FEED';
+  }
 
   // Initialize UI Events
   initHeaderEvents();
@@ -30,30 +67,133 @@ function renderAll() {
   renderHeader();
   renderLeftSidebar();
   renderCenterArea();
+  renderRightSidebar();
+}
+
+function renderRightSidebar() {
+  const container = document.getElementById('right-context-area');
+  if (!container) return;
+
+  const currentCat = state.categories.find((c) => c.id === state.selectedCategory);
+  const currentCh = currentCat?.channels.find((ch) => ch.id === state.selectedChannel);
+  const stats = state.getStats();
+
+  const channelName = currentCh ? `# ${currentCh.name}` : '# All Information';
+  const channelDesc = currentCh?.description || 'Community notices, internships, health appeals, and civic alerts.';
+
+  container.innerHTML = `
+    <div class="right-sidebar-scroll">
+      <!-- Channel Context Card -->
+      <div class="context-card">
+        <div class="context-card-header">
+          <span data-icon="folder" data-size="xs"></span>
+          <span>Channel Overview</span>
+        </div>
+        <div class="context-channel-title">${escapeHtml(channelName)}</div>
+        <p class="context-channel-desc">${escapeHtml(channelDesc)}</p>
+        <div class="context-rules-box">
+          <div class="context-rule-item"><span data-icon="check" data-size="xs"></span> Max 5 MB PDF / Image Uploads</div>
+          <div class="context-rule-item"><span data-icon="check" data-size="xs"></span> Automated AI Safety Verification</div>
+          <div class="context-rule-item"><span data-icon="check" data-size="xs"></span> Community Resolution Lifecycle</div>
+        </div>
+      </div>
+
+      <!-- Community Pulse Card -->
+      <div class="context-card">
+        <div class="context-card-header">
+          <span data-icon="chart" data-size="xs"></span>
+          <span>Community Pulse</span>
+        </div>
+        <div class="pulse-stats-grid">
+          <div class="pulse-stat-box">
+            <div class="pulse-stat-num text-active">${stats.active}</div>
+            <div class="pulse-stat-label">Active</div>
+          </div>
+          <div class="pulse-stat-box">
+            <div class="pulse-stat-num text-resolved">${stats.resolved}</div>
+            <div class="pulse-stat-label">Resolved</div>
+          </div>
+          <div class="pulse-stat-box">
+            <div class="pulse-stat-num text-pending">${stats.pending}</div>
+            <div class="pulse-stat-label">Pending</div>
+          </div>
+          <div class="pulse-stat-box">
+            <div class="pulse-stat-num text-total">${stats.total}</div>
+            <div class="pulse-stat-label">Total Notices</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Filter Toggles -->
+      <div class="context-card">
+        <div class="context-card-header">
+          <span data-icon="settings" data-size="xs"></span>
+          <span>Quick Filters</span>
+        </div>
+        <div class="context-filter-options">
+          <label class="context-toggle-row">
+            <span>⚡ Urgent priority only</span>
+            <input type="checkbox" ${state.filters.onlyUrgent ? 'checked' : ''} onchange="state.setFilter('onlyUrgent', this.checked)">
+          </label>
+          <label class="context-toggle-row">
+            <span>📅 With upcoming deadlines</span>
+            <input type="checkbox" ${state.filters.onlyWithDeadlines ? 'checked' : ''} onchange="state.setFilter('onlyWithDeadlines', this.checked)">
+          </label>
+          <label class="context-toggle-row">
+            <span>📷 With images / attachments</span>
+            <input type="checkbox" ${state.filters.onlyWithImages ? 'checked' : ''} onchange="state.setFilter('onlyWithImages', this.checked)">
+          </label>
+        </div>
+      </div>
+
+      <!-- Civic Trust & Safety Card -->
+      <div class="context-card trust-card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span class="health-dot"></span>
+          <strong style="font-size:12.5px;color:var(--text-main);">Civic Trust Guardrails</strong>
+        </div>
+        <div style="font-size:11.5px;color:var(--text-muted);line-height:1.45;">
+          AI safety moderation active. Content is screened for fraud, scam handles, and unverified solicitations.
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-dim);border-top:1px solid var(--border-color);padding-top:8px;">
+          <span>Moderator: Priya Desai</span>
+          <a href="admin.html" style="color:var(--primary-blue);text-decoration:none;font-weight:600;">Mod Desk &rarr;</a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (typeof hydrateIcons === 'function') hydrateIcons(container);
 }
 
 // 1. Header Events & Rendering
 function initHeaderEvents() {
   document.getElementById('btn-brand-home')?.addEventListener('click', () => {
-    state.setView('HOME');
+    window.location.href = 'landing.html';
   });
 
   document.getElementById('nav-home')?.addEventListener('click', () => {
     state.setView('HOME');
   });
   document.getElementById('nav-feed')?.addEventListener('click', () => {
-    state.setView('FEED');
+    state.selectChannel('ALL', 'ALL');
   });
   document.getElementById('nav-mod')?.addEventListener('click', () => {
-    state.setView('MODERATION');
+    window.location.href = 'admin.html';
   });
 
   document.getElementById('btn-toggle-theme')?.addEventListener('click', () => {
     state.toggleTheme();
   });
 
-  document.getElementById('btn-toggle-role')?.addEventListener('click', () => {
-    state.toggleUserRole();
+  const profileBtn = document.getElementById('btn-toggle-role');
+  profileBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleProfileMenu();
+  });
+
+  document.addEventListener('click', () => {
+    closeProfileMenu();
   });
 
   document.getElementById('btn-open-create')?.addEventListener('click', () => {
@@ -75,6 +215,88 @@ function initHeaderEvents() {
       searchInput?.focus();
     }
   });
+}
+
+function toggleProfileMenu() {
+  const existing = document.getElementById('header-profile-menu');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  const menu = document.createElement('div');
+  menu.id = 'header-profile-menu';
+  menu.className = 'profile-menu-dropdown';
+
+  const role = state.currentUser.role || 'Resident';
+  const roleBadgeClass = role === 'Admin' ? 'admin' : role === 'Moderator' ? 'mod' : 'resident';
+
+  menu.innerHTML = `
+    <div class="profile-menu-header">
+      <img src="${state.currentUser.avatar}" alt="avatar" class="header-user-avatar">
+      <div>
+        <div style="font-weight:700;font-size:13.5px;color:var(--text-main);">${escapeHtml(state.currentUser.name)}</div>
+        <div style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(state.currentUser.email || 'community@civicpulse.org')}</div>
+        <div class="role-badge-chip ${roleBadgeClass}" style="display:inline-block;margin-top:4px;font-size:10px;">${role}</div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:650;color:var(--text-muted);text-transform:uppercase;margin:4px 0 2px 4px;">Quick Switch Demo Role</div>
+
+    <button class="profile-menu-item" onclick="handleRoleSwitch('Resident')">
+      <span>👤</span>
+      <span>Resident (Rahul Sharma)</span>
+    </button>
+    <button class="profile-menu-item" onclick="handleRoleSwitch('Moderator')">
+      <span>🛡️</span>
+      <span>Moderator (Priya Desai)</span>
+    </button>
+    <button class="profile-menu-item" onclick="handleRoleSwitch('Admin')">
+      <span>⚡</span>
+      <span>Admin (Vikram Mehta)</span>
+    </button>
+
+    <div style="border-top:1px solid var(--border-color);margin:4px 0;"></div>
+
+    <a href="admin.html" class="profile-menu-item">
+      <span data-icon="shieldCheck" data-size="xs"></span>
+      <span>Admin &amp; Moderation Desk</span>
+    </a>
+
+    <a href="landing.html" class="profile-menu-item">
+      <span data-icon="home" data-size="xs"></span>
+      <span>CivicPulse Landing Page</span>
+    </a>
+
+    <a href="auth.html" class="profile-menu-item">
+      <span data-icon="userPlus" data-size="xs"></span>
+      <span>Switch Account / Sign In</span>
+    </a>
+
+    <button class="profile-menu-item danger" onclick="handleLogout()">
+      <span data-icon="logOut" data-size="xs"></span>
+      <span>Log Out</span>
+    </button>
+  `;
+
+  document.body.appendChild(menu);
+  if (typeof hydrateIcons === 'function') hydrateIcons(menu);
+}
+
+function closeProfileMenu() {
+  const existing = document.getElementById('header-profile-menu');
+  if (existing) existing.remove();
+}
+
+function handleRoleSwitch(role) {
+  closeProfileMenu();
+  state.switchRole(role);
+}
+
+function handleLogout() {
+  closeProfileMenu();
+  state.logout();
+  window.location.href = 'landing.html';
 }
 
 function renderHeader() {
@@ -630,8 +852,8 @@ function openCreateModal() {
         <div><strong>Suggested Channel:</strong> ${classification.categoryName} > #${classification.channelName}</div>
         <div style="color:${safety.score === 'SAFE' ? '#16a34a' : '#d97706'};font-weight:600;display:flex;align-items:center;gap:4px;">
           ${safety.score === 'SAFE'
-            ? '<img src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20green%20circle%20dot%20healthy%20online%20status%20icon%20corporate%20clean%20minimal%20white%20background&image_size=square" alt="" class="ai-icon ai-icon-xs"> Safe to Publish'
-            : '<img src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20yellow%20circle%20dot%20warning%20review%20status%20icon%20corporate%20clean%20minimal%20white%20background&image_size=square" alt="" class="ai-icon ai-icon-xs"> Requires Review'}: ${safety.reasons.join(', ')}
+            ? `${icon('checkCircle', 'xs')} Safe to Publish`
+            : `${icon('alert', 'xs')} Requires Review`}: ${safety.reasons.join(', ')}
         </div>
       `;
 

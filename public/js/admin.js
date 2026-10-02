@@ -18,7 +18,19 @@ class AdminStateController {
 
   setSearch(q) {
     this.searchQuery = q;
+    const input = document.getElementById('admin-notices-search') || document.getElementById('admin-channel-search');
+    const cursorPos = input ? input.selectionStart : null;
+    const focusedId = input ? input.id : null;
     renderAdminMainArea();
+    if (focusedId) {
+      const restored = document.getElementById(focusedId);
+      if (restored) {
+        restored.focus();
+        if (cursorPos !== null) {
+          restored.setSelectionRange(cursorPos, cursorPos);
+        }
+      }
+    }
   }
 
   setCategory(cat) {
@@ -143,10 +155,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Theme button
-  document.getElementById('btn-admin-theme')?.addEventListener('click', () => {
-    state.toggleTheme();
-    document.getElementById('btn-admin-theme').innerHTML = `${icon(state.theme === 'dark' ? 'sun' : 'moon', 'md')}`;
-  });
+  const themeBtn = document.getElementById('btn-admin-theme');
+  if (themeBtn) {
+    themeBtn.innerHTML = `${icon(state.theme === 'dark' ? 'sun' : 'moon', 'md')}`;
+    themeBtn.addEventListener('click', () => {
+      state.toggleTheme();
+      themeBtn.innerHTML = `${icon(state.theme === 'dark' ? 'sun' : 'moon', 'md')}`;
+    });
+  }
 
   // Reset button
   document.getElementById('btn-admin-reset')?.addEventListener('click', () => {
@@ -157,6 +173,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Profile menu
+  const profileBtn = document.getElementById('btn-admin-profile');
+  profileBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleAdminProfileMenu();
+  });
+
+  document.addEventListener('click', () => {
+    closeAdminProfileMenu();
+  });
+
   // Subscribe to core state
   state.subscribe(() => {
     renderAdminAll();
@@ -165,9 +192,113 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderAdminAll();
 });
 
+function toggleAdminProfileMenu() {
+  const existing = document.getElementById('admin-profile-menu');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  const menu = document.createElement('div');
+  menu.id = 'admin-profile-menu';
+  menu.className = 'profile-menu-dropdown';
+
+  const role = state.currentUser.role || 'Admin';
+  const roleBadgeClass = role === 'Admin' ? 'admin' : role === 'Moderator' ? 'mod' : 'resident';
+
+  menu.innerHTML = `
+    <div class="profile-menu-header">
+      <img src="${state.currentUser.avatar}" alt="avatar" class="header-user-avatar">
+      <div>
+        <div style="font-weight:700;font-size:13.5px;color:var(--text-main);">${escapeHtml(state.currentUser.name)}</div>
+        <div style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(state.currentUser.email || 'admin@civicpulse.org')}</div>
+        <div class="role-badge-chip ${roleBadgeClass}" style="display:inline-block;margin-top:4px;font-size:10px;">${role}</div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:650;color:var(--text-muted);text-transform:uppercase;margin:4px 0 2px 4px;">Quick Switch Demo Role</div>
+
+    <button class="profile-menu-item" onclick="handleAdminRoleSwitch('Resident')">
+      <span>👤</span>
+      <span>Resident (Rahul Sharma)</span>
+    </button>
+    <button class="profile-menu-item" onclick="handleAdminRoleSwitch('Moderator')">
+      <span>🛡️</span>
+      <span>Moderator (Priya Desai)</span>
+    </button>
+    <button class="profile-menu-item" onclick="handleAdminRoleSwitch('Admin')">
+      <span>⚡</span>
+      <span>Admin (Vikram Mehta)</span>
+    </button>
+
+    <div style="border-top:1px solid var(--border-color);margin:4px 0;"></div>
+
+    <a href="index.html" class="profile-menu-item">
+      <span data-icon="feed" data-size="xs"></span>
+      <span>Public Information Feed</span>
+    </a>
+
+    <a href="landing.html" class="profile-menu-item">
+      <span data-icon="home" data-size="xs"></span>
+      <span>Landing Page</span>
+    </a>
+
+    <a href="auth.html" class="profile-menu-item">
+      <span data-icon="userPlus" data-size="xs"></span>
+      <span>Sign In / Switch User</span>
+    </a>
+
+    <button class="profile-menu-item danger" onclick="handleAdminLogout()">
+      <span data-icon="logOut" data-size="xs"></span>
+      <span>Log Out</span>
+    </button>
+  `;
+
+  document.body.appendChild(menu);
+  if (typeof hydrateIcons === 'function') hydrateIcons(menu);
+}
+
+function closeAdminProfileMenu() {
+  const existing = document.getElementById('admin-profile-menu');
+  if (existing) existing.remove();
+}
+
+function handleAdminRoleSwitch(role) {
+  closeAdminProfileMenu();
+  state.switchRole(role);
+}
+
+function handleAdminLogout() {
+  closeAdminProfileMenu();
+  state.logout();
+  window.location.href = 'landing.html';
+}
+
 function renderAdminAll() {
+  renderAdminHeader();
   renderAdminSidebar();
   renderAdminMainArea();
+}
+
+function renderAdminHeader() {
+  const nameEl = document.getElementById('admin-header-name');
+  const roleEl = document.getElementById('admin-header-role');
+  const avatarEl = document.getElementById('admin-header-avatar');
+  const bannerText = document.getElementById('admin-demo-banner-text');
+
+  if (nameEl) nameEl.textContent = state.currentUser.name;
+  if (roleEl) roleEl.textContent = state.currentUser.role === 'Admin' ? 'Lead Administrator' : state.currentUser.role === 'Moderator' ? 'Community Moderator' : 'Resident';
+  if (avatarEl) avatarEl.src = state.currentUser.avatar;
+
+  if (bannerText) {
+    if (state.currentUser.role === 'Admin') {
+      bannerText.innerHTML = `<strong>Admin Access</strong> — ${escapeHtml(state.currentUser.name)} (Full Channel CRUD &amp; Governance)`;
+    } else if (state.currentUser.role === 'Moderator') {
+      bannerText.innerHTML = `<strong>Moderator Access</strong> — ${escapeHtml(state.currentUser.name)} (Trust, Safety &amp; Review)`;
+    } else {
+      bannerText.innerHTML = `<strong>Resident Preview Mode</strong> — ${escapeHtml(state.currentUser.name)} <button class="filter-pill" style="margin-left:8px;padding:2px 8px;font-size:11px;" onclick="state.switchRole('Moderator')">Switch to Moderator</button>`;
+    }
+  }
 }
 
 function renderAdminSidebar() {
@@ -233,7 +364,7 @@ function renderAdminChannelsView(container) {
 
       <!-- Search & Category Filters -->
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
-        <input type="text" class="header-search-input" placeholder="Search channels by name or description..." style="max-width:320px;" oninput="adminState.setSearch(this.value)">
+        <input type="text" class="header-search-input" id="admin-channel-search" placeholder="Search channels by name or description..." value="${adminState.searchQuery || ''}" style="max-width:320px;" oninput="adminState.setSearch(this.value)">
 
         <select class="filter-select-pill" onchange="adminState.setCategory(this.value)">
           <option value="ALL">All Categories (${state.categories.length})</option>
@@ -284,9 +415,7 @@ function renderAdminChannelsView(container) {
                               <span style="font-size:14px;">${ch.icon || '#'}</span>
                               <span style="font-size:14px;font-weight:700;color:var(--text-main);">#${ch.name}</span>
                               <span class="status-pill-badge ${isActive ? 'active' : 'expired'}" style="font-size:10px;padding:2px 8px;display:inline-flex;align-items:center;gap:3px;">
-                                ${isActive
-                                  ? '<img src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20green%20circle%20dot%20healthy%20online%20status%20icon%20corporate%20clean%20minimal%20white%20background&image_size=square" alt="" class="ai-icon ai-icon-xs"> Active'
-                                  : '<img src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20gray%20circle%20dot%20inactive%20offline%20archived%20status%20icon%20corporate%20clean%20minimal%20white%20background&image_size=square" alt="" class="ai-icon ai-icon-xs"> Inactive'}
+                                ${isActive ? `${icon('checkCircle', 'xs')} Active` : `${icon('pause', 'xs')} Inactive`}
                               </span>
                               <span style="font-size:11px;color:var(--text-muted);background:var(--bg-surface);padding:1px 6px;border-radius:4px;border:1px solid var(--border-color);">
                                 ${postCount} posts
@@ -328,13 +457,12 @@ function renderAdminChannelsView(container) {
 // 2. Channel Create Modal
 function openCreateChannelModal(defaultCategoryId = 'EDUCATION') {
   const root = document.getElementById('admin-modals-root');
-  const plusModal = 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20plus%20add%20create%20new%20icon%20corporate%20clean%20minimal%20purple%20white%20background&image_size=square';
 
   root.innerHTML = `
     <div class="modal-overlay">
       <div class="modal-dialog" style="max-width:500px;">
         <div class="modal-header" style="background:#f3e8ff;">
-          <div class="modal-title" style="color:#7c3aed;display:flex;align-items:center;gap:4px;"><img src="${plusModal}" alt="" class="ai-icon ai-icon-sm"> Create New Community Channel</div>
+          <div class="modal-title" style="color:#7c3aed;display:flex;align-items:center;gap:4px;">${icon('plus', 'sm')} Create New Community Channel</div>
           <button class="dots-menu-btn" onclick="closeAdminModals()">✕</button>
         </div>
 
@@ -410,13 +538,12 @@ function openEditChannelModal(channelId) {
   if (!ch) return;
 
   const root = document.getElementById('admin-modals-root');
-  const pencilModal = 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20pencil%20edit%20write%20icon%20corporate%20clean%20minimal%20yellow%20white%20background&image_size=square';
 
   root.innerHTML = `
     <div class="modal-overlay">
       <div class="modal-dialog" style="max-width:500px;">
         <div class="modal-header">
-          <div class="modal-title" style="display:flex;align-items:center;gap:4px;"><img src="${pencilModal}" alt="" class="ai-icon ai-icon-sm"> Edit Channel: #${ch.name}</div>
+          <div class="modal-title" style="display:flex;align-items:center;gap:4px;">${icon('pencil', 'sm')} Edit Channel: #${ch.name}</div>
           <button class="dots-menu-btn" onclick="closeAdminModals()">✕</button>
         </div>
 
@@ -657,7 +784,7 @@ function renderAdminResolvedAudits(container) {
                   <div style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
                     <span style="display:flex;align-items:center;gap:2px;">${icon('mapPin', 'xs')} ${p.location || 'Mumbai'}</span>
                     <span>•</span>
-                    <span style="display:flex;align-items:center;gap:2px;">${icon('thumbsUp', 'xs')} ${p.validation.useful} Citizens Validated</span>
+                    <span style="display:flex;align-items:center;gap:2px;">${icon('thumbsUp', 'xs')} ${p.validation ? p.validation.useful : 0} Citizens Validated</span>
                   </div>
                   <button class="btn-view-details" onclick="openAdminInspectModal('${p.id}')">Inspect Audit Log →</button>
                 </div>
@@ -673,6 +800,17 @@ function renderAdminResolvedAudits(container) {
 
 // 8. All Notices Directory View
 function renderAdminAllPosts(container) {
+  const q = (adminState.searchQuery || '').toLowerCase().trim();
+  const filteredPosts = state.posts.filter((p) => {
+    if (!q) return true;
+    return (
+      (p.title && p.title.toLowerCase().includes(q)) ||
+      (p.description && p.description.toLowerCase().includes(q)) ||
+      (p.author && p.author.name && p.author.name.toLowerCase().includes(q)) ||
+      (p.channelName && p.channelName.toLowerCase().includes(q)) ||
+      (p.categoryPath && p.categoryPath.toLowerCase().includes(q))
+    );
+  });
 
   container.innerHTML = `
     <div class="feed-header-section">
@@ -682,16 +820,17 @@ function renderAdminAllPosts(container) {
       </div>
 
       <div style="display:flex;gap:10px;margin-top:8px;">
-        <input type="text" class="header-search-input" placeholder="Filter by title, author, or keyword..." style="max-width:320px;" oninput="adminState.setSearch(this.value)">
+        <input type="text" class="header-search-input" id="admin-notices-search" placeholder="Filter by title, author, or keyword..." value="${adminState.searchQuery || ''}" style="max-width:320px;" oninput="adminState.setSearch(this.value)">
       </div>
     </div>
 
     <div class="feed-cards-scroll">
       <div class="feed-cards-container">
-        ${state.posts
-          .filter((p) => !adminState.searchQuery || p.title.toLowerCase().includes(adminState.searchQuery.toLowerCase()))
-          .map((p) => renderAdminCardHtml(p, false))
-          .join('')}
+        ${
+          filteredPosts.length > 0
+            ? filteredPosts.map((p) => renderAdminCardHtml(p, false)).join('')
+            : `<div class="empty-state">${icon('search', 'xl')}<h3>No notices found</h3><p>Try adjusting your search terms.</p></div>`
+        }
       </div>
     </div>
   `;
@@ -699,7 +838,6 @@ function renderAdminAllPosts(container) {
 
 // 9. Settings View
 function renderAdminSettings(container) {
-
   container.innerHTML = `
     <div class="feed-header-section">
       <div>
@@ -730,31 +868,21 @@ function renderAdminSettings(container) {
 // Render Admin Structured Card
 function renderAdminCardHtml(post, showReportBox = true) {
   const isReported = post.reports && post.reports.length > 0;
-
-  const cardIcons = {
-    category: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20graduation%20cap%20category%20classify%20icon%20corporate%20clean%20minimal%20blue%20white%20background&image_size=square',
-    flag: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20red%20flag%20report%20alert%20icon%20corporate%20clean%20minimal%20red%20white%20background&image_size=square',
-    loc: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20map%20pin%20location%20marker%20pinpoint%20icon%20corporate%20clean%20minimal%20red%20white%20background&image_size=square',
-    like: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20thumbs%20up%20like%20approve%20hand%20icon%20corporate%20clean%20minimal%20blue%20white%20background&image_size=square',
-    comment: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20speech%20bubble%20comment%20chat%20icon%20corporate%20clean%20minimal%20green%20white%20background&image_size=square',
-    check: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20checkmark%20tick%20approve%20icon%20corporate%20clean%20minimal%20green%20white%20background&image_size=square',
-    resolve: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20green%20checkmark%20circle%20success%20verified%20resolved%20icon%20corporate%20clean%20minimal%20green%20white%20background&image_size=square',
-    trash: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20trash%20bin%20delete%20remove%20icon%20corporate%20clean%20minimal%20red%20white%20background&image_size=square',
-  };
+  const categoryIconKey = CATEGORY_ICONS[post.category] || 'folder';
 
   return `
     <div class="post-card" style="${isReported ? 'border-left:4px solid #dc2626;' : ''}">
       <div class="card-left-content">
         <div class="card-header-row">
           <div class="author-meta-block">
-            <div class="author-circle-avatar ${post.author.color || 'purple'}">${post.author.initial || 'A'}</div>
-            <span class="author-name-text">${post.author.name}</span>
+            <div class="author-circle-avatar ${post.author?.color || 'purple'}">${post.author?.initial || (post.author?.name ? post.author.name[0] : 'A')}</div>
+            <span class="author-name-text">${post.author?.name || 'Community Member'}</span>
             <span class="post-time-text">${post.formattedDate || 'Recently'}</span>
           </div>
 
           <div class="card-header-actions">
             <span class="status-pill-badge ${(post.status || 'active').toLowerCase()}">${post.status}</span>
-            <span class="category-breadcrumb-pill"><img src="${cardIcons.category}" alt="" class="ai-icon ai-icon-xs" style="vertical-align:-2px;"> ${post.categoryPath || post.channelName}</span>
+            <span class="category-breadcrumb-pill">${icon(categoryIconKey, 'xs')} ${post.categoryPath || post.channelName}</span>
           </div>
         </div>
 
@@ -766,7 +894,7 @@ function renderAdminCardHtml(post, showReportBox = true) {
           showReportBox && isReported
             ? `
               <div style="background:var(--badge-review-bg);color:var(--badge-review-text);padding:10px 14px;border-radius:var(--radius-md);border:1px solid #fca5a5;font-size:12px;">
-                <div style="font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:4px;"><img src="${cardIcons.flag}" alt="" class="ai-icon ai-icon-xs"> Citizen Reports (${post.reports.length}):</div>
+                <div style="font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:4px;">${icon('flag', 'xs')} Citizen Reports (${post.reports.length}):</div>
                 <ul style="padding-left:18px;">
                   ${post.reports.map((r) => `<li><strong>${r.reason}:</strong> ${r.customNotes || 'Flagged by resident'} (by ${r.reportedBy})</li>`).join('')}
                 </ul>
@@ -778,18 +906,18 @@ function renderAdminCardHtml(post, showReportBox = true) {
         <!-- Admin Action Buttons -->
         <div class="card-footer-row" style="margin-top:8px;">
           <div style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
-            <span style="display:flex;align-items:center;gap:2px;"><img src="${cardIcons.loc}" alt="" class="ai-icon ai-icon-xs"> ${post.location || 'Mumbai'}</span>
+            <span style="display:flex;align-items:center;gap:2px;">${icon('mapPin', 'xs')} ${post.location || 'Mumbai'}</span>
             <span>•</span>
-            <span style="display:flex;align-items:center;gap:2px;"><img src="${cardIcons.like}" alt="" class="ai-icon ai-icon-xs"> ${post.validation.useful} Useful</span>
+            <span style="display:flex;align-items:center;gap:2px;">${icon('thumbsUp', 'xs')} ${post.validation ? post.validation.useful : 0} Useful</span>
             <span>•</span>
-            <span style="display:flex;align-items:center;gap:2px;"><img src="${cardIcons.comment}" alt="" class="ai-icon ai-icon-xs"> ${post.comments.length} Comments</span>
+            <span style="display:flex;align-items:center;gap:2px;">${icon('messageCircle', 'xs')} ${(post.comments && post.comments.length) || 0} Comments</span>
           </div>
 
-          <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <button class="filter-pill" onclick="openAdminInspectModal('${post.id}')">Inspect Full</button>
-            <button class="filter-pill" style="color:#16a34a;font-weight:700;background:#dcfce7;display:flex;align-items:center;gap:4px;" onclick="adminState.approveNotice('${post.id}')"><img src="${cardIcons.check}" alt="" class="ai-icon ai-icon-xs"> Approve Notice</button>
-            <button class="filter-pill" style="color:#0284c7;font-weight:700;display:flex;align-items:center;gap:4px;" onclick="adminState.resolveNotice('${post.id}')"><img src="${cardIcons.resolve}" alt="" class="ai-icon ai-icon-xs"> Mark Resolved</button>
-            <button class="filter-pill" style="color:#dc2626;font-weight:700;background:#fee2e2;display:flex;align-items:center;gap:4px;" onclick="adminState.removeNotice('${post.id}')"><img src="${cardIcons.trash}" alt="" class="ai-icon ai-icon-xs"> Remove</button>
+            <button class="filter-pill" style="color:#16a34a;font-weight:700;background:#dcfce7;display:flex;align-items:center;gap:4px;" onclick="adminState.approveNotice('${post.id}')">${icon('checkCircle', 'xs')} Approve Notice</button>
+            <button class="filter-pill" style="color:#0284c7;font-weight:700;display:flex;align-items:center;gap:4px;" onclick="adminState.resolveNotice('${post.id}')">${icon('checkCircle', 'xs')} Mark Resolved</button>
+            <button class="filter-pill" style="color:#dc2626;font-weight:700;background:#fee2e2;display:flex;align-items:center;gap:4px;" onclick="adminState.removeNotice('${post.id}')">${icon('trash', 'xs')} Remove</button>
           </div>
         </div>
       </div>
@@ -802,23 +930,18 @@ function openAdminInspectModal(postId) {
   const post = state.posts.find((p) => p.id === postId);
   if (!post) return;
 
-  const shield = 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20shield%20guard%20moderation%20safety%20protection%20icon%20corporate%20clean%20minimal%20purple%20white%20background&image_size=square';
-  const checkAI = 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20checkmark%20tick%20approve%20icon%20corporate%20clean%20minimal%20green%20white%20background&image_size=square';
-  const resolveAI = 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20green%20checkmark%20circle%20success%20verified%20resolved%20icon%20corporate%20clean%20minimal%20green%20white%20background&image_size=square';
-  const trashAI = 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20trash%20bin%20delete%20remove%20icon%20corporate%20clean%20minimal%20red%20white%20background&image_size=square';
-
   const root = document.getElementById('admin-modals-root');
   root.innerHTML = `
     <div class="modal-overlay">
       <div class="modal-dialog" style="max-width:680px;">
         <div class="modal-header" style="background:#f3e8ff;">
-          <div class="modal-title" style="color:#7c3aed;display:flex;align-items:center;gap:4px;"><img src="${shield}" alt="" class="ai-icon ai-icon-sm"> Moderator Post Audit Log</div>
+          <div class="modal-title" style="color:#7c3aed;display:flex;align-items:center;gap:4px;">${icon('shield', 'sm')} Moderator Post Audit Log</div>
           <button class="dots-menu-btn" onclick="closeAdminModals()">✕</button>
         </div>
 
         <div class="modal-body">
           <h2 style="font-size:17px;font-weight:700;">${post.title}</h2>
-          <div style="font-size:12px;color:var(--text-muted);">Posted by <strong>${post.author.name}</strong> (${post.author.role}) • Status: <strong>${post.status}</strong></div>
+          <div style="font-size:12px;color:var(--text-muted);">Posted by <strong>${post.author?.name || 'Community Member'}</strong> (${post.author?.role || 'Resident'}) • Status: <strong>${post.status}</strong></div>
 
           <p style="font-size:13px;line-height:1.5;">${post.description}</p>
 
@@ -826,23 +949,23 @@ function openAdminInspectModal(postId) {
           <div style="border-top:1px solid var(--border-color);padding-top:10px;">
             <h4 style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Post Update & Audit Trail</h4>
             <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
-              ${post.updates.map((u) => `<div style="background:var(--bg-sidebar);padding:6px 10px;border-radius:4px;"><strong>${u.authorName}</strong> (${u.authorRole}): ${u.content}</div>`).join('')}
+              ${(post.updates || []).map((u) => `<div style="background:var(--bg-sidebar);padding:6px 10px;border-radius:4px;"><strong>${u.authorName}</strong> (${u.authorRole}): ${u.content}</div>`).join('')}
             </div>
           </div>
 
           <!-- Comments -->
           <div style="border-top:1px solid var(--border-color);padding-top:10px;">
-            <h4 style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Community Comments (${post.comments.length})</h4>
+            <h4 style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Community Comments (${post.comments?.length || 0})</h4>
             <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
-              ${post.comments.length > 0 ? post.comments.map((c) => `<div><strong>${c.authorName}:</strong> ${c.content}</div>`).join('') : '<div style="color:var(--text-muted);">No comments yet.</div>'}
+              ${post.comments && post.comments.length > 0 ? post.comments.map((c) => `<div><strong>${c.authorName}:</strong> ${c.content}</div>`).join('') : '<div style="color:var(--text-muted);">No comments yet.</div>'}
             </div>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button class="filter-pill" style="color:#16a34a;display:flex;align-items:center;gap:4px;" onclick="adminState.approveNotice('${post.id}');closeAdminModals();"><img src="${checkAI}" alt="" class="ai-icon ai-icon-xs"> Approve</button>
-          <button class="filter-pill" style="color:#0284c7;display:flex;align-items:center;gap:4px;" onclick="adminState.resolveNotice('${post.id}');closeAdminModals();"><img src="${resolveAI}" alt="" class="ai-icon ai-icon-xs"> Resolve</button>
-          <button class="filter-pill" style="color:#dc2626;display:flex;align-items:center;gap:4px;" onclick="adminState.removeNotice('${post.id}');closeAdminModals();"><img src="${trashAI}" alt="" class="ai-icon ai-icon-xs"> Remove</button>
+          <button class="filter-pill" style="color:#16a34a;display:flex;align-items:center;gap:4px;" onclick="adminState.approveNotice('${post.id}');closeAdminModals();">${icon('checkCircle', 'xs')} Approve</button>
+          <button class="filter-pill" style="color:#0284c7;display:flex;align-items:center;gap:4px;" onclick="adminState.resolveNotice('${post.id}');closeAdminModals();">${icon('checkCircle', 'xs')} Resolve</button>
+          <button class="filter-pill" style="color:#dc2626;display:flex;align-items:center;gap:4px;" onclick="adminState.removeNotice('${post.id}');closeAdminModals();">${icon('trash', 'xs')} Remove</button>
           <button class="filter-pill active" onclick="closeAdminModals()">Close</button>
         </div>
       </div>

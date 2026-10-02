@@ -23,15 +23,20 @@
         </div>
       </div>
 
-      <div class="admin-demo-banner">
+      <div class="admin-demo-banner" id="admin-demo-banner">
         <span data-icon="key" data-size="xs"></span>
-        <span><strong>Demo access</strong> — Priya Desai, Senior Civic Moderator</span>
+        <span id="admin-demo-banner-text"><strong>Demo access</strong> — Priya Desai, Senior Civic Moderator</span>
       </div>
 
       <div class="header-right-actions">
+        <a href="landing.html" class="btn btn-secondary" title="View Landing Page">
+          <span data-icon="home" data-size="xs"></span>
+          <span>Home</span>
+        </a>
+
         <a href="index.html" class="btn btn-secondary">
           <span data-icon="arrowLeft" data-size="xs"></span>
-          <span>Public portal</span>
+          <span>Public feed</span>
         </a>
 
         <button class="header-icon-btn" id="btn-admin-reset" title="Reset to initial sample dataset">
@@ -40,11 +45,11 @@
 
         <button class="header-icon-btn" id="btn-admin-theme" title="Toggle light / dark theme"></button>
 
-        <div class="header-user-profile">
-          <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" alt="avatar" class="header-user-avatar">
+        <div class="header-user-profile" id="btn-admin-profile" style="cursor:pointer;position:relative;" title="User Profile &amp; Role">
+          <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" alt="avatar" class="header-user-avatar" id="admin-header-avatar">
           <div>
-            <div class="header-user-name">Priya Desai</div>
-            <div class="header-user-role">Admin / Moderator</div>
+            <div class="header-user-name" id="admin-header-name">Priya Desai</div>
+            <div class="header-user-role" id="admin-header-role">Admin / Moderator</div>
           </div>
         </div>
       </div>

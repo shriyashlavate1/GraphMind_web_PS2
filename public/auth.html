@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicPulse — Sign In &amp; Create Account</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="ref-auth-body">
+  <!-- Subtle Grid Background Container -->
+  <div class="ref-auth-container">
+
+    <!-- Top Right Floating Controls -->
+    <div class="ref-auth-top-controls">
+      <button class="header-icon-btn" id="btn-auth-theme" title="Toggle light / dark theme"></button>
+    </div>
+
+    <!-- Centered Card (Matches Reference UI) -->
+    <div class="ref-auth-card">
+      <!-- Centered Brand Logo + Title -->
+      <div class="ref-brand-header">
+        <div class="ref-brand-badge">
+          <span data-icon="graduationCap" data-size="md"></span>
+        </div>
+        <span class="ref-brand-name">CivicPulse</span>
+      </div>
+
+      <!-- ================= SIGN IN VIEW ================= -->
+      <div id="view-signin" class="ref-auth-view">
+        <h1 class="ref-heading">Welcome Back</h1>
+        <p class="ref-subtext">Enter your credentials to access your dashboard.</p>
+
+        <!-- Role Segmented Pill Control -->
+        <div class="ref-role-tabs" id="signin-role-tabs">
+          <button type="button" class="ref-role-tab active" data-role="Admin" onclick="selectSignInRole('Admin')">Admin</button>
+          <button type="button" class="ref-role-tab" data-role="Moderator" onclick="selectSignInRole('Moderator')">Moderator</button>
+          <button type="button" class="ref-role-tab" data-role="Resident" onclick="selectSignInRole('Resident')">Resident</button>
+        </div>
+
+        <div id="auth-alert-signin" class="ref-alert hidden"></div>
+
+        <form onsubmit="handleRefLoginSubmit(event)">
+          <div class="ref-form-group">
+            <label class="ref-label" for="signin-email">Email address</label>
+            <input type="text" id="signin-email" class="ref-input" placeholder="name@example.com" value="admin@civicpulse.org" required>
+          </div>
+
+          <div class="ref-form-group">
+            <div class="ref-label-row">
+              <label class="ref-label" for="signin-password">Password</label>
+              <a href="#" class="ref-link-sm" onclick="showPasswordHint(event)">Forgot password?</a>
+            </div>
+            <input type="password" id="signin-password" class="ref-input" placeholder="••••••••" value="password123" required>
+          </div>
+
+          <button type="submit" class="ref-btn-submit" id="btn-signin-submit">
+            Sign in
+          </button>
+        </form>
+
+        <div class="ref-card-footer">
+          Don't have an account? <a href="#" class="ref-link-blue" onclick="switchAuthView('signup', event)">Sign up</a>
+        </div>
+      </div>
+
+      <!-- ================= SIGN UP / CREATE ACCOUNT VIEW ================= -->
+      <div id="view-signup" class="ref-auth-view hidden">
+        <h1 class="ref-heading">Create Account</h1>
+        <p class="ref-subtext">Join our community hub today.</p>
+
+        <!-- Role Segmented Pill Control -->
+        <div class="ref-role-tabs" id="signup-role-tabs">
+          <button type="button" class="ref-role-tab" data-role="Moderator" onclick="selectSignUpRole('Moderator')">Moderator</button>
+          <button type="button" class="ref-role-tab active" data-role="Resident" onclick="selectSignUpRole('Resident')">Resident</button>
+        </div>
+
+        <div id="auth-alert-signup" class="ref-alert hidden"></div>
+
+        <form onsubmit="handleRefSignupSubmit(event)">
+          <div class="ref-form-group">
+            <label class="ref-label" for="signup-name">Full Name</label>
+            <input type="text" id="signup-name" class="ref-input" placeholder="John Doe" required>
+          </div>
+
+          <div class="ref-form-group">
+            <label class="ref-label" for="signup-email">Email address</label>
+            <input type="email" id="signup-email" class="ref-input" placeholder="name@example.com" required>
+          </div>
+
+          <div class="ref-form-group">
+            <label class="ref-label" for="signup-password">Password</label>
+            <input type="password" id="signup-password" class="ref-input" placeholder="••••••••" required>
+          </div>
+
+          <button type="submit" class="ref-btn-submit" id="btn-signup-submit">
+            Sign Up
+          </button>
+        </form>
+
+        <div class="ref-card-footer">
+          Already have an account? <a href="#" class="ref-link-blue" onclick="switchAuthView('signin', event)">Log in</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Below Card Back to Home Link -->
+    <a href="landing.html" class="ref-back-home-link">
+      <span data-icon="arrowLeft" data-size="xs"></span>
+      <span>Back to home</span>
+    </a>
+  </div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

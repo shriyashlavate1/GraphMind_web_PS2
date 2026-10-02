@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicPulse — Structured Local Community Information Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="landing-body">
+  <!-- Top Navigation -->
+  <header class="landing-navbar">
+    <div class="landing-nav-container">
+      <a href="landing.html" class="brand-wrapper">
+        <div class="brand-pin-icon" data-icon="mapPin" data-size="md"></div>
+        <div>
+          <div class="brand-title-text">CivicPulse</div>
+          <div class="brand-sub-text">Local Information Network</div>
+        </div>
+      </a>
+
+      <nav class="landing-nav-links">
+        <a href="#how-it-works" class="landing-nav-link">How It Works</a>
+        <a href="#features" class="landing-nav-link">Channels &amp; Features</a>
+        <a href="#roles" class="landing-nav-link">Role Portals</a>
+        <a href="index.html" class="landing-nav-link highlight">Live Feed</a>
+      </nav>
+
+      <div class="landing-nav-actions">
+        <button class="header-icon-btn" id="btn-landing-theme" title="Toggle light / dark theme"></button>
+        <a href="auth.html?mode=signin" class="btn btn-secondary">
+          <span data-icon="logIn" data-size="xs"></span>
+          <span>Sign In</span>
+        </a>
+        <a href="auth.html?mode=signup" class="btn btn-primary">
+          <span data-icon="userPlus" data-size="xs"></span>
+          <span>Join Community</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="landing-hero-section">
+    <div class="landing-hero-container">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        <span data-icon="sparkles" data-size="xs"></span>
+        <span>Reinventing Local Community Information Sharing</span>
+      </div>
+
+      <h1 class="hero-headline">
+        Useful Local Information,<br>
+        <span class="hero-gradient-text">Structured, Verified &amp; Resolved.</span>
+      </h1>
+
+      <p class="hero-subtext">
+        No more important notices lost in chaotic WhatsApp groups. Discover verified internships, municipal road repairs, urgent blood requests, scholarships, and events in a clean Discord-inspired channel hierarchy with AI moderation and 5 MB document attachments.
+      </p>
+
+      <!-- Primary Hero Actions -->
+      <div class="hero-cta-group">
+        <a href="index.html" class="btn btn-primary btn-hero-lg">
+          <span data-icon="feed" data-size="sm"></span>
+          <span>Explore Public Live Feed</span>
+          <span data-icon="arrowRight" data-size="xs"></span>
+        </a>
+        <a href="auth.html?mode=signup&role=Resident" class="btn btn-secondary btn-hero-lg">
+          <span data-icon="user" data-size="sm"></span>
+          <span>Resident Sign Up</span>
+        </a>
+        <a href="admin.html" class="btn btn-admin btn-hero-lg">
+          <span data-icon="shieldCheck" data-size="sm"></span>
+          <span>Admin &amp; Mod Desk</span>
+        </a>
+      </div>
+
+      <!-- Quick 1-Click Role Direct Login Strip -->
+      <div class="hero-demo-strip">
+        <div class="demo-strip-label">
+          <span data-icon="key" data-size="xs"></span>
+          <span>Instant 1-Click Demo Evaluation:</span>
+        </div>
+        <div class="demo-strip-buttons">
+          <button class="demo-pill-btn" onclick="landingQuickLogin('Resident')">
+            <span class="pill-role-icon">👤</span>
+            <span>Resident (Rahul Sharma)</span>
+          </button>
+          <button class="demo-pill-btn" onclick="landingQuickLogin('Moderator')">
+            <span class="pill-role-icon">🛡️</span>
+            <span>Moderator (Priya Desai)</span>
+          </button>
+          <button class="demo-pill-btn admin" onclick="landingQuickLogin('Admin')">
+            <span class="pill-role-icon">⚡</span>
+            <span>Admin (Vikram Mehta)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Stats Bar -->
+  <section class="landing-stats-section">
+    <div class="landing-stats-grid">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-active-count">100%</div>
+        <div class="stat-label">AI Safety &amp; Scam Audited</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">5 MB</div>
+        <div class="stat-label">PDF &amp; Image Attachments</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">6+</div>
+        <div class="stat-label">Configurable Channel Hubs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">&lt; 15 min</div>
+        <div class="stat-label">Urgent Response Dispatch</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem vs Solution Section -->
+  <section class="landing-comparison-section" id="how-it-works">
+    <div class="section-header">
+      <h2 class="section-title">The Information Problem vs CivicPulse</h2>
+      <p class="section-subtitle">Why structured community intelligence replaces unstructured messaging chaos</p>
+    </div>
+
+    <div class="comparison-grid">
+      <div class="comparison-card bad">
+        <div class="comparison-badge bad">❌ Fragmented WhatsApp &amp; Word-of-Mouth</div>
+        <ul class="comparison-list">
+          <li>Important internship and scholarship links get buried under hundreds of chat messages.</li>
+          <li>Unverified rumors, outdated information, and expired notices remain active indefinitely.</li>
+          <li>No accountability: impossible to know if a pothole was filled or if blood was found.</li>
+          <li>Scams, fee requests, and fraudulent links circulate without safety verification.</li>
+        </ul>
+      </div>
+
+      <div class="comparison-card good">
+        <div class="comparison-badge good">✅ CivicPulse Structured Platform</div>
+        <ul class="comparison-list">
+          <li>Dedicated Discord-style category channels (#internships, #roads, #blood-donation, #events).</li>
+          <li>Automated lifecycle engine with deadline countdowns and expiration archiving.</li>
+          <li>Community validation with upvotes, downvotes, and verified resolution timelines.</li>
+          <li>Automated LLM moderation detecting financial solicitations, scams, and toxicity in real time.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature Grid Section -->
+  <section class="landing-features-section" id="features">
+    <div class="section-header">
+      <h2 class="section-title">Engineered for Community Discovery</h2>
+      <p class="section-subtitle">Comprehensive tools for citizens, students, organizers, and civic administrators</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background:#e0f2fe;color:#0369a1;">
+          <span data-icon="graduationCap" data-size="lg"></span>
+        </div>
+        <h3 class="feature-title">Education &amp; Opportunities</h3>
+        <p class="feature-desc">Discover summer internships, research fellowships, college hackathons, and merit scholarships with strict deadline trackers and application guides.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background:#fee2e2;color:#dc2626;">
+          <span data-icon="cross" data-size="lg"></span>
+        </div>
+        <h3 class="feature-title">Medical &amp; Blood Registry</h3>
+        <p class="feature-desc">Broadcast urgent blood donation requests, discover free health screening camps, and verify emergency medical assistance in real time.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background:#fef3c7;color:#d97706;">
+          <span data-icon="alert" data-size="lg"></span>
+        </div>
+        <h3 class="feature-title">Municipal &amp; Road Issues</h3>
+        <p class="feature-desc">Report water pipeline ruptures, pothole hazards, power outages, and road diversions with live status transitions (Active → In Progress → Resolved).</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background:#f3e8ff;color:#7e22ce;">
+          <span data-icon="files" data-size="lg"></span>
+        </div>
+        <h3 class="feature-title">5 MB PDF &amp; Media Uploads</h3>
+        <p class="feature-desc">Attach official PDF circulars, admission brochures, and photographic evidence directly to your notice with inline preview badges and download links.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background:#dcfce7;color:#15803d;">
+          <span data-icon="bot" data-size="lg"></span>
+        </div>
+        <h3 class="feature-title">AI Safety Guardrails</h3>
+        <p class="feature-desc">Every notice is audited by our LLM moderation endpoint for financial scam solicitations, hate speech, and spam before entering the community feed.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-box" style="background:#ede9fe;color:#5b4cdb;">
+          <span data-icon="settings" data-size="lg"></span>
+        </div>
+        <h3 class="feature-title">Full Channel CRUD</h3>
+        <p class="feature-desc">Admins can create, edit, deactivate, and delete community channels dynamically, ensuring the platform adapts to changing local requirements.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Role Portals Section -->
+  <section class="landing-roles-section" id="roles">
+    <div class="section-header">
+      <h2 class="section-title">Designed for Three Distinct Roles</h2>
+      <p class="section-subtitle">Tailored interfaces and permissions for residents, moderators, and platform leaders</p>
+    </div>
+
+    <div class="roles-grid">
+      <!-- Role 1: Resident -->
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-badge-chip resident">Resident</div>
+          <div class="role-avatar-demo">👤</div>
+        </div>
+        <h3 class="role-title">Community Member / Resident</h3>
+        <p class="role-desc">Local residents and students who want to stay informed, share opportunities, and report neighbourhood problems.</p>
+        <div class="role-permissions">
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> Browse &amp; filter channels with ⌘ K search</div>
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> Create notices with up to 5 MB PDFs &amp; images</div>
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> Vote Useful (👍) or Incorrect (👎)</div>
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> Mark own reported problems as Resolved</div>
+        </div>
+        <a href="auth.html?mode=signup&role=Resident" class="btn btn-secondary role-cta-btn">
+          <span>Join as Resident</span>
+          <span data-icon="arrowRight" data-size="xs"></span>
+        </a>
+      </div>
+
+      <!-- Role 2: Moderator -->
+      <div class="role-card highlight-card">
+        <div class="role-header">
+          <div class="role-badge-chip mod">Trust &amp; Safety</div>
+          <div class="role-avatar-demo">🛡️</div>
+        </div>
+        <h3 class="role-title">Community Moderator</h3>
+        <p class="role-desc">Civic volunteers and trusted community leaders responsible for keeping information accurate, safe, and spam-free.</p>
+        <div class="role-permissions">
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> All Resident privileges included</div>
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> Review user-reported queue and AI-flagged notices</div>
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> Approve, remove, or resolve community notices</div>
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> Audit problem resolution summaries</div>
+        </div>
+        <a href="auth.html?mode=signin&role=Moderator" class="btn btn-primary role-cta-btn">
+          <span>Sign In as Moderator</span>
+          <span data-icon="arrowRight" data-size="xs"></span>
+        </a>
+      </div>
+
+      <!-- Role 3: Admin -->
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-badge-chip admin">Administrator</div>
+          <div class="role-avatar-demo">⚡</div>
+        </div>
+        <h3 class="role-title">Platform Administrator</h3>
+        <p class="role-desc">Civic platform directors with full governance rights, channel customization, and LLM moderation management.</p>
+        <div class="role-permissions">
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> Full Channel CRUD (Create, Edit, Delete, Toggle)</div>
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> Platform-wide metric dashboards &amp; audits</div>
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> Configure LLM moderation &amp; mock fallbacks</div>
+          <div class="permission-item"><span data-icon="check" data-size="xs"></span> System reset &amp; data governance tools</div>
+        </div>
+        <a href="auth.html?mode=signin&role=Admin" class="btn btn-admin role-cta-btn">
+          <span>Sign In as Admin</span>
+          <span data-icon="arrowRight" data-size="xs"></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action Banner -->
+  <section class="landing-cta-banner">
+    <div class="cta-banner-content">
+      <h2>Ready to Organize Your Local Information?</h2>
+      <p>Join hundreds of local residents and community contributors discovering verified notices every day.</p>
+      <div class="cta-banner-buttons">
+        <a href="auth.html?mode=signup" class="btn btn-primary btn-hero-lg">
+          <span data-icon="userPlus" data-size="sm"></span>
+          <span>Create Free Account</span>
+        </a>
+        <a href="index.html" class="btn btn-secondary btn-hero-lg">
+          <span data-icon="feed" data-size="sm"></span>
+          <span>Browse Community Feed</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="landing-footer-container">
+      <div class="footer-brand">
+        <div class="brand-wrapper">
+          <div class="brand-pin-icon" data-icon="mapPin" data-size="sm"></div>
+          <div>
+            <div class="brand-title-text" style="font-size:16px;">CivicPulse</div>
+            <div class="brand-sub-text">Local Information Network</div>
+          </div>
+        </div>
+        <p class="footer-copy">Pure HTML, CSS, Plain JavaScript with Secure Node.js LLM Backend.</p>
+      </div>
+
+      <div class="footer-links-group">
+        <div class="footer-col">
+          <strong>Portals</strong>
+          <a href="index.html">Public Information Feed</a>
+          <a href="auth.html?mode=signin">Resident Sign In</a>
+          <a href="auth.html?mode=signup">Create Account</a>
+          <a href="admin.html">Admin &amp; Moderation Hub</a>
+        </div>
+        <div class="footer-col">
+          <strong>Channels</strong>
+          <a href="index.html?channel=internships">#internships</a>
+          <a href="index.html?channel=roads">#roads &amp; traffic</a>
+          <a href="index.html?channel=blood-donation">#blood-donation</a>
+          <a href="index.html?channel=lost-items">#lost-and-found</a>
+        </div>
+        <div class="footer-col">
+          <strong>Architecture</strong>
+          <span>Vanilla JavaScript (ES6+)</span>
+          <span>100% No Frontend Frameworks</span>
+          <span>5 MB Attachment Validation</span>
+          <span>Gemini &amp; Mock Moderation</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/icons.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/state.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Sync theme
+      const themeBtn = document.getElementById('btn-landing-theme');
+      if (themeBtn) {
+        updateLandingThemeIcon(themeBtn);
+        themeBtn.addEventListener('click', () => {
+          state.toggleTheme();
+          updateLandingThemeIcon(themeBtn);
+        });
+      }
+
+      if (typeof hydrateIcons === 'function') {
+        hydrateIcons();
+      }
+    });
+
+    function updateLandingThemeIcon(btn) {
+      const isDark = document.documentElement.classList.contains('dark') || state.theme === 'dark';
+      btn.innerHTML = icon(isDark ? 'sun' : 'moon', 'md');
+    }
+
+    function landingQuickLogin(role) {
+      const user = state.users.find((u) => u.role.toLowerCase() === role.toLowerCase());
+      if (user) {
+        state.currentUser = { ...user };
+        state.saveCurrentUser();
+        if (role === 'Admin' || role === 'Moderator') {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'index.html';
+        }
+      }
+    }
+  </script>
+</body>
+</html>

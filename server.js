@@ -255,14 +255,44 @@ app.post('/api/classify', (req, res) => {
   });
 });
 
+// Route aliases for clean URLs
+app.get('/landing', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'landing.html'));
+});
+
+app.get(['/auth', '/login', '/signup', '/signin'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'auth.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.get(['/feed', '/app'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Fallback to index.html for SPA routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`=======================================================`);
-  console.log(` CivicPulse Platform running at http://localhost:${PORT}`);
-  console.log(` Pure HTML, CSS, Plain JavaScript with Secure Node API `);
-  console.log(`=======================================================`);
-});
+function startServer(port) {
+  const server = app.listen(port, () => {
+    console.log(`=======================================================`);
+    console.log(` CivicPulse Platform running at http://localhost:${port}`);
+    console.log(` Pure HTML, CSS, Plain JavaScript with Secure Node API `);
+    console.log(`=======================================================`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`Port ${port} in use, attempting port ${port + 1}...`);
+      startServer(port + 1);
+    } else {
+      console.error('Server error:', err);
+    }
+  });
+}
+
+startServer(Number(PORT));

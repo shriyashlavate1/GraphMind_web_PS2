@@ -71,7 +71,6 @@ const INITIAL_CATEGORIES = [
     ],
   },
 ];
-
 function iconImg(nameOrUrl, size = 'sm') {
   if (!nameOrUrl) return '';
   if (typeof icon === 'function' && ICON_PATHS && ICON_PATHS[nameOrUrl]) {
@@ -81,9 +80,24 @@ function iconImg(nameOrUrl, size = 'sm') {
   return typeof icon === 'function' ? icon(mapped, size) : '';
 }
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function capitalize(str) {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function categoryIconImg(cat, size = 'sm') {
-  const key = cat?.iconKey || cat?.icon || CATEGORY_ICONS?.[cat?.id] || 'search';
-  return icon(key, size);
+  const key = cat?.iconKey || cat?.icon || (typeof CATEGORY_ICONS !== 'undefined' && CATEGORY_ICONS[cat?.id]) || 'search';
+  return typeof icon === 'function' ? icon(key, size) : '';
 }
 
 const INITIAL_POSTS = [
@@ -259,5 +273,60 @@ const INITIAL_POSTS = [
       },
     ],
     reports: [],
+  },
+];
+
+const DEMO_USERS = [
+  {
+    id: 'usr_rahul_99',
+    name: 'Rahul Sharma',
+    email: 'rahul@civicpulse.org',
+    password: 'password123',
+    role: 'Resident',
+    roleBadge: 'Resident',
+    locality: 'Andheri East, Mumbai',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
+    bio: 'Local resident, community volunteer & active civic participant.',
+    joinedDate: 'Jan 2026',
+    verified: true,
+  },
+  {
+    id: 'usr_priya_lead',
+    name: 'Priya Desai',
+    email: 'priya@civicpulse.org',
+    password: 'password123',
+    role: 'Moderator',
+    roleBadge: 'Community Moderator',
+    locality: 'Civic Trust & Safety Unit',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=80',
+    bio: 'Senior civic moderator reviewing reports, validating notices, and ensuring community safety.',
+    joinedDate: 'Nov 2025',
+    verified: true,
+  },
+  {
+    id: 'usr_vikram_admin',
+    name: 'Vikram Mehta',
+    email: 'admin@civicpulse.org',
+    password: 'password123',
+    role: 'Admin',
+    roleBadge: 'Lead Administrator',
+    locality: 'Mumbai Central Command',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
+    bio: 'Platform administrator with full channel CRUD, user policy, and LLM moderation management.',
+    joinedDate: 'Aug 2025',
+    verified: true,
+  },
+  {
+    id: 'usr_ananya_mumbai',
+    name: 'Ananya Mehta',
+    email: 'ananya@civicpulse.org',
+    password: 'password123',
+    role: 'Resident',
+    roleBadge: 'Resident',
+    locality: 'Powai, Mumbai',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80',
+    bio: 'Student at IIT Bombay & technology enthusiast sharing career opportunities.',
+    joinedDate: 'Feb 2026',
+    verified: true,
   },
 ];

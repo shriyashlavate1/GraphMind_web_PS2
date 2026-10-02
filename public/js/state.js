@@ -7,13 +7,9 @@ class CommunityState {
   constructor() {
     this.categories = this.loadCategories();
     this.posts = this.loadPosts();
+    this.users = this.loadUsers();
     this.theme = localStorage.getItem('civicpulse_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    this.currentUser = {
-      id: 'usr_rahul_99',
-      name: 'Rahul Sharma',
-      role: 'Resident',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-    };
+    this.currentUser = this.loadCurrentUser();
 
     this.activeView = 'FEED';
     this.selectedCategory = 'EDUCATION';
@@ -49,11 +45,11 @@ class CommunityState {
       }
     }
     if (!cats) {
-      cats = INITIAL_CATEGORIES;
+      cats = typeof INITIAL_CATEGORIES !== 'undefined' ? INITIAL_CATEGORIES : [];
     }
     return cats.map((cat) => {
-      const seed = INITIAL_CATEGORIES.find((c) => c.id === cat.id);
-      const iconKey = CATEGORY_ICONS?.[cat.id] || seed?.iconKey || cat.iconKey || 'search';
+      const seed = typeof INITIAL_CATEGORIES !== 'undefined' ? INITIAL_CATEGORIES.find((c) => c.id === cat.id) : null;
+      const iconKey = (typeof CATEGORY_ICONS !== 'undefined' && CATEGORY_ICONS[cat.id]) || seed?.iconKey || cat.iconKey || 'search';
       return {
         ...cat,
         icon: iconKey,
@@ -80,7 +76,7 @@ class CommunityState {
         console.error('Failed to parse saved posts', e);
       }
     }
-    return INITIAL_POSTS;
+    return typeof INITIAL_POSTS !== 'undefined' ? INITIAL_POSTS : [];
   }
 
   savePosts() {
@@ -99,7 +95,6 @@ class CommunityState {
     this.listeners.forEach((fn) => fn(this));
   }
 
-  // Theme Toggle
   toggleTheme() {
     this.theme = this.theme === 'light' ? 'dark' : 'light';
     localStorage.setItem('civicpulse_theme', this.theme);
@@ -116,24 +111,149 @@ class CommunityState {
     }
   }
 
-  // Role Switcher
-  toggleUserRole() {
-    if (this.currentUser.role === 'Resident') {
-      this.currentUser = {
-        id: 'usr_priya_lead',
-        name: 'Priya Desai (Mod)',
-        role: 'Moderator',
-        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=80',
-      };
-    } else {
-      this.currentUser = {
+  loadUsers() {
+    const saved = localStorage.getItem('civicpulse_plain_users');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved users', e);
+      }
+    }
+    return typeof DEMO_USERS !== 'undefined' ? DEMO_USERS : [
+      {
         id: 'usr_rahul_99',
         name: 'Rahul Sharma',
+        email: 'rahul@civicpulse.org',
+        password: 'password123',
         role: 'Resident',
+        roleBadge: 'Resident',
+        locality: 'Andheri East, Mumbai',
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
+        bio: 'Local resident & active community contributor.',
+        joinedDate: 'Jan 2026',
+        verified: true,
+      },
+    ];
+  }
+
+  saveUsers() {
+    localStorage.setItem('civicpulse_plain_users', JSON.stringify(this.users));
+  }
+
+  loadCurrentUser() {
+    const saved = localStorage.getItem('civicpulse_auth_user');
+    if (saved) {
+      try {
+        const u = JSON.parse(saved);
+        if (u && u.id) return u;
+      } catch (e) {
+        console.error('Failed to parse auth user', e);
+      }
+    }
+    return this.users[0] || {
+      id: 'usr_rahul_99',
+      name: 'Rahul Sharma',
+      role: 'Resident',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
+    };
+  }
+
+  saveCurrentUser() {
+    localStorage.setItem('civicpulse_auth_user', JSON.stringify(this.currentUser));
+    this.notify();
+  }
+
+  // Authentication Operations
+  login(emailOrName, password, requestedRole = null) {
+    const clean = (emailOrName || '').trim().toLowerCase();
+    const user = this.users.find(
+      (u) =>
+        u.email.toLowerCase() === clean ||
+        u.name.toLowerCase() === clean ||
+        u.id.toLowerCase() === clean
+    );
+
+    if (!user) {
+      throw new Error('Account not found with provided email or name.');
+    }
+
+    if (password && user.password && user.password !== password) {
+      throw new Error('Incorrect password. Please try again.');
+    }
+
+    if (requestedRole && requestedRole !== 'ALL' && user.role.toLowerCase() !== requestedRole.toLowerCase()) {
+      user.role = requestedRole;
+    }
+
+    this.currentUser = { ...user };
+    this.saveCurrentUser();
+    return this.currentUser;
+  }
+
+  signup({ name, email, password, role = 'Resident', locality = 'Andheri East, Mumbai' }) {
+    if (!name || !name.trim()) throw new Error('Full name is required.');
+    if (!email || !email.trim()) throw new Error('Email address is required.');
+
+    const cleanEmail = email.trim().toLowerCase();
+    const existing = this.users.find((u) => u.email.toLowerCase() === cleanEmail);
+    if (existing) {
+      throw new Error('An account with this email already exists. Please log in.');
+    }
+
+    const newUser = {
+      id: `usr_${Date.now()}`,
+      name: name.trim(),
+      email: cleanEmail,
+      password: password || 'password123',
+      role: role || 'Resident',
+      roleBadge: role === 'Admin' ? 'Lead Administrator' : role === 'Moderator' ? 'Community Moderator' : 'Resident',
+      locality: locality.trim() || 'Andheri East, Mumbai',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
+      bio: `CivicPulse ${role} member in ${locality.trim() || 'Mumbai'}`,
+      joinedDate: 'Oct 2026',
+      verified: true,
+    };
+
+    this.users.unshift(newUser);
+    this.saveUsers();
+    this.currentUser = { ...newUser };
+    this.saveCurrentUser();
+    return newUser;
+  }
+
+  logout() {
+    localStorage.removeItem('civicpulse_auth_user');
+    this.currentUser = this.users.find((u) => u.role === 'Resident') || this.users[0];
+    this.saveCurrentUser();
+  }
+
+  switchUser(userId) {
+    const target = this.users.find((u) => u.id === userId);
+    if (target) {
+      this.currentUser = { ...target };
+      this.saveCurrentUser();
+    }
+  }
+
+  switchRole(targetRole) {
+    const matching = this.users.find((u) => u.role.toLowerCase() === targetRole.toLowerCase());
+    if (matching) {
+      this.currentUser = { ...matching };
+    } else {
+      this.currentUser = {
+        ...this.currentUser,
+        role: targetRole,
       };
     }
-    this.notify();
+    this.saveCurrentUser();
+  }
+
+  toggleUserRole() {
+    const roles = ['Resident', 'Moderator', 'Admin'];
+    const currentIdx = roles.findIndex((r) => r.toLowerCase() === this.currentUser.role.toLowerCase());
+    const nextRole = roles[(currentIdx + 1) % roles.length];
+    this.switchRole(nextRole);
   }
 
   // Channel Selection
