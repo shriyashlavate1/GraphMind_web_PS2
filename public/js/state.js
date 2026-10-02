@@ -1,11 +1,11 @@
 /**
  * CivicPulse - App State & Reactive Store
- * Pure Plain JavaScript
+ * Pure Plain JavaScript (With Full Channel CRUD & Storage Persistence)
  */
 
 class CommunityState {
   constructor() {
-    this.categories = INITIAL_CATEGORIES;
+    this.categories = this.loadCategories();
     this.posts = this.loadPosts();
     this.theme = localStorage.getItem('civicpulse_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     this.currentUser = {
@@ -15,9 +15,9 @@ class CommunityState {
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
     };
 
-    this.activeView = 'HOME'; // 'HOME' | 'FEED' | 'MODERATION'
-    this.selectedCategory = 'ALL';
-    this.selectedChannel = 'ALL';
+    this.activeView = 'FEED';
+    this.selectedCategory = 'EDUCATION';
+    this.selectedChannel = 'internships';
 
     this.filters = {
       search: '',
@@ -36,6 +36,39 @@ class CommunityState {
     // Periodic expiration check
     this.checkExpirations();
     setInterval(() => this.checkExpirations(), 60000);
+  }
+
+  loadCategories() {
+    const saved = localStorage.getItem('civicpulse_plain_categories');
+    let cats = null;
+    if (saved) {
+      try {
+        cats = JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved categories', e);
+      }
+    }
+    if (!cats) {
+      cats = INITIAL_CATEGORIES;
+    }
+    return cats.map((cat) => {
+      const seed = INITIAL_CATEGORIES.find((c) => c.id === cat.id);
+      const iconKey = CATEGORY_ICONS?.[cat.id] || seed?.iconKey || cat.iconKey || 'search';
+      return {
+        ...cat,
+        icon: iconKey,
+        iconKey,
+        channels: (cat.channels || []).map((ch) => ({
+          ...ch,
+          status: ch.status || 'active',
+        })),
+      };
+    });
+  }
+
+  saveCategories() {
+    localStorage.setItem('civicpulse_plain_categories', JSON.stringify(this.categories));
+    this.notify();
   }
 
   loadPosts() {
@@ -145,7 +178,113 @@ class CommunityState {
     this.notify();
   }
 
-  // 1. Create Post
+  // ==========================================================================
+  // CHANNEL CRUD OPERATIONS (Admin Full Access)
+  // ==========================================================================
+
+  getAllChannels() {
+    const all = [];
+    this.categories.forEach((cat) => {
+      cat.channels.forEach((ch) => {
+        all.push({
+          ...ch,
+          categoryName: cat.name,
+          categoryIcon: cat.icon,
+          postCount: this.posts.filter((p) => p.channelId === ch.id).length,
+        });
+      });
+    });
+    return all;
+  }
+
+  createChannel({ name, description, categoryId, icon = '#', status = 'active' }) {
+    const cleanName = name.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    const chId = cleanName;
+
+    // Check if channel already exists
+    const existing = this.getAllChannels().find((c) => c.id === chId);
+    if (existing) {
+      throw new Error(`Channel #${cleanName} already exists in ${existing.categoryName}.`);
+    }
+
+    let catObj = this.categories.find((c) => c.id === categoryId);
+    if (!catObj) {
+      catObj = this.categories[0];
+    }
+
+    const newChannel = {
+      id: chId,
+      name: cleanName,
+      categoryId: catObj.id,
+      description: description.trim(),
+      icon,
+      status, // 'active' or 'inactive'
+    };
+
+    catObj.channels.push(newChannel);
+    this.saveCategories();
+    return newChannel;
+  }
+
+  updateChannel(channelId, { name, description, categoryId, icon, status }) {
+    let targetCh = null;
+    let oldCat = null;
+
+    for (const cat of this.categories) {
+      const idx = cat.channels.findIndex((c) => c.id === channelId);
+      if (idx !== -1) {
+        targetCh = cat.channels[idx];
+        oldCat = cat;
+        if (categoryId && categoryId !== cat.id) {
+          // Move to new category
+          cat.channels.splice(idx, 1);
+          const newCat = this.categories.find((c) => c.id === categoryId) || this.categories[0];
+          newCat.channels.push(targetCh);
+          targetCh.categoryId = newCat.id;
+        }
+        break;
+      }
+    }
+
+    if (!targetCh) return null;
+
+    if (name) targetCh.name = name.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    if (description !== undefined) targetCh.description = description.trim();
+    if (icon) targetCh.icon = icon;
+    if (status) targetCh.status = status;
+
+    this.saveCategories();
+    return targetCh;
+  }
+
+  deleteChannel(channelId) {
+    for (const cat of this.categories) {
+      const idx = cat.channels.findIndex((c) => c.id === channelId);
+      if (idx !== -1) {
+        cat.channels.splice(idx, 1);
+        this.saveCategories();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  toggleChannelStatus(channelId) {
+    for (const cat of this.categories) {
+      const ch = cat.channels.find((c) => c.id === channelId);
+      if (ch) {
+        ch.status = ch.status === 'active' ? 'inactive' : 'active';
+        this.saveCategories();
+        return ch.status;
+      }
+    }
+    return null;
+  }
+
+  // ==========================================================================
+  // POST OPERATIONS
+  // ==========================================================================
+
   createPost(newPostData) {
     const id = `post_${Date.now()}`;
     const now = new Date().toISOString();
@@ -164,14 +303,20 @@ class CommunityState {
         id: this.currentUser.id,
         name: this.currentUser.name,
         role: this.currentUser.role,
+        initial: this.currentUser.name.charAt(0).toUpperCase(),
+        color: 'purple',
         avatar: this.currentUser.avatar,
       },
       createdAt: now,
       updatedAt: now,
-      status: newPostData.status || 'PENDING',
+      formattedDate: new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: newPostData.status || 'Active',
       deadline: newPostData.deadline,
+      deadlineLabel: newPostData.deadlineLabel,
       expectedResolution: newPostData.expectedResolution,
+      resolutionLabel: newPostData.resolutionLabel,
       location: newPostData.location || 'Andheri, Mumbai',
+      categoryPath: `${catObj?.name || 'General'} > ${chObj?.name || 'announcements'}`,
       distanceKm: newPostData.distanceKm ?? 0.8,
       tags: newPostData.tags || [],
       images: newPostData.images || [],
@@ -189,7 +334,7 @@ class CommunityState {
           authorName: this.currentUser.name,
           authorRole: this.currentUser.role,
           content: 'Initial information post created and verified.',
-          newStatus: newPostData.status || 'PENDING',
+          newStatus: newPostData.status || 'Active',
         },
       ],
       comments: [],
@@ -201,7 +346,6 @@ class CommunityState {
     return post;
   }
 
-  // 2. Update Post
   updatePost(postId, updateText, newStatus) {
     const now = new Date().toISOString();
     const post = this.posts.find((p) => p.id === postId);
@@ -225,7 +369,6 @@ class CommunityState {
     this.savePosts();
   }
 
-  // 3. Resolve Post
   resolvePost(postId, resolutionSummary) {
     const post = this.posts.find((p) => p.id === postId);
     if (!post) return;
@@ -233,11 +376,10 @@ class CommunityState {
     this.updatePost(
       postId,
       resolutionSummary || 'Problem has been confirmed resolved by community.',
-      'RESOLVED'
+      'Resolved'
     );
   }
 
-  // 4. Report Post
   reportPost(postId, reason, customNotes) {
     const post = this.posts.find((p) => p.id === postId);
     if (!post) return;
@@ -266,7 +408,6 @@ class CommunityState {
     this.savePosts();
   }
 
-  // 5. Community Validation Voting
   validatePost(postId, type) {
     const post = this.posts.find((p) => p.id === postId);
     if (!post) return;
@@ -300,7 +441,6 @@ class CommunityState {
     this.savePosts();
   }
 
-  // 6. Comments
   addComment(postId, content) {
     const post = this.posts.find((p) => p.id === postId);
     if (!post || !content.trim()) return;
@@ -319,24 +459,11 @@ class CommunityState {
     this.savePosts();
   }
 
-  likeComment(postId, commentId) {
-    const post = this.posts.find((p) => p.id === postId);
-    if (!post) return;
-
-    const comm = post.comments.find((c) => c.id === commentId);
-    if (comm) {
-      comm.userLiked = !comm.userLiked;
-      comm.likes = comm.userLiked ? comm.likes + 1 : Math.max(0, comm.likes - 1);
-      this.savePosts();
-    }
-  }
-
-  // Moderator actions
   moderatorApprove(postId) {
     const post = this.posts.find((p) => p.id === postId);
     if (!post) return;
 
-    post.status = 'ACTIVE';
+    post.status = 'Active';
     post.updatedAt = new Date().toISOString();
     post.reports = [];
     post.updates.push({
@@ -344,9 +471,9 @@ class CommunityState {
       timestamp: new Date().toISOString(),
       authorName: this.currentUser.name,
       authorRole: 'Community Moderator',
-      content: 'Moderator reviewed reports and verified information as valid.',
+      content: 'Moderator reviewed reports and verified notice as valid.',
       previousStatus: 'UNDER_REVIEW',
-      newStatus: 'ACTIVE',
+      newStatus: 'Active',
     });
     this.savePosts();
   }
@@ -358,30 +485,35 @@ class CommunityState {
 
   resetDemoData() {
     localStorage.removeItem('civicpulse_plain_posts');
+    localStorage.removeItem('civicpulse_plain_categories');
     this.posts = INITIAL_POSTS;
+    this.categories = INITIAL_CATEGORIES.map((cat) => ({
+      ...cat,
+      channels: cat.channels.map((ch) => ({ ...ch, status: 'active' })),
+    }));
     this.resetFilters();
     this.savePosts();
+    this.saveCategories();
   }
 
-  // Expiration watcher
   checkExpirations() {
     const now = new Date().getTime();
     let changed = false;
 
     this.posts.forEach((post) => {
-      if (post.deadline && post.status !== 'EXPIRED' && post.status !== 'RESOLVED') {
+      if (post.deadline && post.status !== 'Expired' && post.status !== 'Resolved') {
         const deadlineTime = new Date(post.deadline).getTime();
         if (deadlineTime <= now) {
-          post.status = 'EXPIRED';
+          post.status = 'Expired';
           post.updatedAt = new Date().toISOString();
           post.updates.push({
             id: `upd_exp_${Date.now()}`,
             timestamp: new Date().toISOString(),
             authorName: 'System Scheduler',
             authorRole: 'Automated Lifecycle',
-            content: `Deadline (${new Date(post.deadline).toLocaleDateString()}) reached. Post archived as Expired.`,
+            content: `Deadline reached. Post archived as Expired.`,
             previousStatus: post.status,
-            newStatus: 'EXPIRED',
+            newStatus: 'Expired',
           });
           changed = true;
         }
@@ -391,13 +523,12 @@ class CommunityState {
     if (changed) this.savePosts();
   }
 
-  // Computed Filtered Posts
   getFilteredPosts() {
     return this.posts
       .filter((post) => {
         if (this.filters.categoryId !== 'ALL' && post.categoryId !== this.filters.categoryId) return false;
         if (this.filters.channelId !== 'ALL' && post.channelId !== this.filters.channelId) return false;
-        if (this.filters.status !== 'ALL' && post.status !== this.filters.status) return false;
+        if (this.filters.status !== 'ALL' && post.status.toLowerCase() !== this.filters.status.toLowerCase()) return false;
         if (this.filters.onlyWithDeadlines && !post.deadline) return false;
         if (this.filters.onlyWithImages && (!post.images || post.images.length === 0)) return false;
         if (this.filters.onlyUrgent && post.priority !== 'urgent') return false;
@@ -436,27 +567,20 @@ class CommunityState {
           return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
         }
 
-        const priorityOrder = { emergency: 3, urgent: 2, normal: 1 };
-        const aPri = priorityOrder[a.priority || 'normal'] || 1;
-        const bPri = priorityOrder[b.priority || 'normal'] || 1;
-        if (aPri !== bPri) return bPri - aPri;
-
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
       });
   }
 
-  // Status metrics
   getStats() {
     return {
       total: this.posts.length,
-      active: this.posts.filter((p) => p.status === 'ACTIVE').length,
-      pending: this.posts.filter((p) => p.status === 'PENDING').length,
-      resolved: this.posts.filter((p) => p.status === 'RESOLVED').length,
+      active: this.posts.filter((p) => p.status === 'Active' || p.status === 'ACTIVE').length,
+      pending: this.posts.filter((p) => p.status === 'Pending' || p.status === 'PENDING').length,
+      resolved: this.posts.filter((p) => p.status === 'Resolved' || p.status === 'RESOLVED').length,
       underReview: this.posts.filter((p) => p.status === 'UNDER_REVIEW').length,
-      expired: this.posts.filter((p) => p.status === 'EXPIRED').length,
+      expired: this.posts.filter((p) => p.status === 'Expired' || p.status === 'EXPIRED').length,
     };
   }
 }
 
-// Global state instance
 const state = new CommunityState();

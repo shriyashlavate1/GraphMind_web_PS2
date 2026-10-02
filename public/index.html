@@ -3,52 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CivicPulse - Local Information Network</title>
+  <title>CivicPulse — Local Information Network</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <div class="app-container">
-    <!-- Top Header Bar -->
     <header class="header-bar">
-      <!-- Brand -->
       <div class="brand-wrapper" id="btn-brand-home">
-        <div class="brand-pin-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/>
-            <circle cx="12" cy="10" r="3" fill="#0284c7"/>
-          </svg>
-        </div>
+        <div class="brand-pin-icon" data-icon="mapPin" data-size="md"></div>
         <div>
           <div class="brand-title-text">CivicPulse</div>
           <div class="brand-sub-text">Local Information Network</div>
         </div>
       </div>
 
-      <!-- Search Bar -->
       <div class="header-search-box">
-        <span class="header-search-icon">🔍</span>
-        <input type="text" class="header-search-input" id="global-search-input" placeholder="Search for internships, road issues, events, lost items...">
+        <span class="header-search-icon" data-icon="search" data-size="sm"></span>
+        <input type="text" class="header-search-input" id="global-search-input" placeholder="Search internships, road issues, events, lost items…">
         <span class="header-search-kbd">⌘ K</span>
       </div>
 
-      <!-- Right Actions -->
       <div class="header-right-actions">
+        <a href="admin.html" class="btn btn-admin" title="Open Admin &amp; Moderation Dashboard">
+          <span data-icon="shieldCheck" data-size="sm"></span>
+          <span>Admin Desk</span>
+        </a>
+
         <button class="btn-share-info" id="btn-open-create">
-          <span style="font-size:15px;line-height:1;">+</span>
+          <span data-icon="plus" data-size="sm"></span>
           <span>Share Information</span>
         </button>
 
-        <!-- Theme Toggle -->
-        <button class="header-icon-btn" id="btn-toggle-theme" title="Toggle Light / Dark theme">
-          ☀️
-        </button>
+        <button class="header-icon-btn" id="btn-toggle-theme" title="Toggle light / dark theme"></button>
 
-        <!-- Notifications -->
         <button class="header-icon-btn" title="Notifications">
-          🔔
+          <span data-icon="bell" data-size="md"></span>
         </button>
 
-        <!-- User Profile -->
         <div class="header-user-profile" id="btn-toggle-role" title="Click to switch role (Resident / Moderator)">
           <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="avatar" class="header-user-avatar" id="header-avatar-img">
           <div>
@@ -59,45 +53,35 @@
       </div>
     </header>
 
-    <!-- Main Content: Sidebar + Center Feed -->
     <div class="main-wrapper">
-      <!-- Left Sidebar Navigation -->
       <aside class="left-sidebar">
         <div class="sidebar-scroll-content">
-          <!-- Top Nav Group -->
           <div class="top-nav-group">
             <div class="nav-pill-item" id="nav-home">
-              <span class="nav-pill-icon">🏠</span>
+              <span class="nav-pill-icon" data-icon="home" data-size="md"></span>
               <span>Home</span>
             </div>
             <div class="nav-pill-item" id="nav-feed">
-              <span class="nav-pill-icon">📋</span>
+              <span class="nav-pill-icon" data-icon="feed" data-size="md"></span>
               <span>Information Feed</span>
             </div>
             <div class="nav-pill-item" id="nav-mod">
-              <span class="nav-pill-icon">🛡️</span>
+              <span class="nav-pill-icon" data-icon="shield" data-size="md"></span>
               <span>Moderation Desk</span>
             </div>
           </div>
 
-          <!-- Channel Categories Container -->
-          <div id="sidebar-categories-container" style="display:flex;flex-direction:column;gap:16px;">
-            <!-- Populated dynamically by app.js -->
-          </div>
+          <div id="sidebar-categories-container" class="sidebar-categories"></div>
         </div>
       </aside>
 
-      <!-- Center Main Information Feed -->
-      <main class="center-feed-area" id="center-main-area">
-        <!-- Rendered dynamically -->
-      </main>
+      <main class="center-feed-area" id="center-main-area"></main>
     </div>
   </div>
 
-  <!-- Modals Container -->
   <div id="modals-root"></div>
 
-  <!-- Pure Plain JavaScript Scripts -->
+  <script src="js/icons.js"></script>
   <script src="js/data.js"></script>
   <script src="js/api.js"></script>
   <script src="js/state.js"></script>

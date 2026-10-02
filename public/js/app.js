@@ -1,6 +1,6 @@
 /**
  * CivicPulse - Pixel-Perfect UI Logic
- * Pure Plain JavaScript (Zero external UI libraries)
+ * Pure Plain JavaScript (With Image & PDF up to 5 MB Upload Support)
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -34,34 +34,34 @@ function renderAll() {
 
 // 1. Header Events & Rendering
 function initHeaderEvents() {
-  document.getElementById('btn-brand-home').addEventListener('click', () => {
+  document.getElementById('btn-brand-home')?.addEventListener('click', () => {
     state.setView('HOME');
   });
 
-  document.getElementById('nav-home').addEventListener('click', () => {
+  document.getElementById('nav-home')?.addEventListener('click', () => {
     state.setView('HOME');
   });
-  document.getElementById('nav-feed').addEventListener('click', () => {
+  document.getElementById('nav-feed')?.addEventListener('click', () => {
     state.setView('FEED');
   });
-  document.getElementById('nav-mod').addEventListener('click', () => {
+  document.getElementById('nav-mod')?.addEventListener('click', () => {
     state.setView('MODERATION');
   });
 
-  document.getElementById('btn-toggle-theme').addEventListener('click', () => {
+  document.getElementById('btn-toggle-theme')?.addEventListener('click', () => {
     state.toggleTheme();
   });
 
-  document.getElementById('btn-toggle-role').addEventListener('click', () => {
+  document.getElementById('btn-toggle-role')?.addEventListener('click', () => {
     state.toggleUserRole();
   });
 
-  document.getElementById('btn-open-create').addEventListener('click', () => {
+  document.getElementById('btn-open-create')?.addEventListener('click', () => {
     openCreateModal();
   });
 
   const searchInput = document.getElementById('global-search-input');
-  searchInput.addEventListener('input', (e) => {
+  searchInput?.addEventListener('input', (e) => {
     state.setFilter('search', e.target.value);
     if (state.activeView !== 'FEED') {
       state.setView('FEED');
@@ -72,24 +72,30 @@ function initHeaderEvents() {
   window.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
-      searchInput.focus();
+      searchInput?.focus();
     }
   });
 }
 
 function renderHeader() {
-  document.getElementById('header-user-name').textContent = state.currentUser.name;
-  document.getElementById('header-user-role').textContent = state.currentUser.role;
-  document.getElementById('header-avatar-img').src = state.currentUser.avatar;
-  document.getElementById('btn-toggle-theme').textContent = state.theme === 'dark' ? '☀️' : '🌙';
+  const nameEl = document.getElementById('header-user-name');
+  const roleEl = document.getElementById('header-user-role');
+  const avatarEl = document.getElementById('header-avatar-img');
+  const themeBtn = document.getElementById('btn-toggle-theme');
+
+  if (nameEl) nameEl.textContent = state.currentUser.name;
+  if (roleEl) roleEl.textContent = state.currentUser.role;
+  if (avatarEl) avatarEl.src = state.currentUser.avatar;
+  if (themeBtn) {
+    themeBtn.innerHTML = `${icon(state.theme === 'dark' ? 'sun' : 'moon', 'md')}`;
+  }
 }
 
 // 2. Left Sidebar
 function renderLeftSidebar() {
-  // Top nav active states
-  document.getElementById('nav-home').classList.toggle('active', state.activeView === 'HOME');
-  document.getElementById('nav-feed').classList.toggle('active', state.activeView === 'FEED' && state.selectedChannel === 'ALL');
-  document.getElementById('nav-mod').classList.toggle('active', state.activeView === 'MODERATION');
+  document.getElementById('nav-home')?.classList.toggle('active', state.activeView === 'HOME');
+  document.getElementById('nav-feed')?.classList.toggle('active', state.activeView === 'FEED' && state.selectedChannel === 'ALL');
+  document.getElementById('nav-mod')?.classList.toggle('active', state.activeView === 'MODERATION');
 
   const container = document.getElementById('sidebar-categories-container');
   if (!container) return;
@@ -97,21 +103,24 @@ function renderLeftSidebar() {
   let html = '';
 
   state.categories.forEach((cat) => {
+    const activeChannels = cat.channels.filter((c) => c.status !== 'inactive');
+    if (activeChannels.length === 0) return;
+
     html += `
       <div class="sidebar-category-block">
         <div class="category-heading">
-          <span class="category-icon">${cat.icon}</span>
+          ${categoryIconImg(cat, 'sm')}
           <span>${cat.name}</span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:2px;">
+        <div class="channel-links">
     `;
 
-    cat.channels.forEach((ch) => {
+    activeChannels.forEach((ch) => {
       const isActive = state.activeView === 'FEED' && state.selectedChannel === ch.id;
       html += `
         <div class="channel-link-item ${isActive ? 'active' : ''}" onclick="state.selectChannel('${cat.id}', '${ch.id}')">
           <span class="channel-hash">#</span>
-          <span>#${ch.name}</span>
+          <span>${ch.name}</span>
         </div>
       `;
     });
@@ -168,24 +177,24 @@ function renderFeedView(container) {
         <!-- Dropdowns -->
         <div class="dropdown-filters-group">
           <select class="filter-select-pill" id="filter-location-select">
-            <option value="">Location ∨</option>
+            <option value="">Location</option>
             <option value="Mumbai">Mumbai</option>
             <option value="Andheri">Andheri</option>
             <option value="BKC">BKC</option>
           </select>
 
           <select class="filter-select-pill" id="filter-date-select">
-            <option value="">Date ∨</option>
+            <option value="">Date</option>
             <option value="today">Today</option>
             <option value="week">This Week</option>
             <option value="month">This Month</option>
           </select>
 
           <select class="filter-select-pill" id="filter-sort-select">
-            <option value="relevance" ${state.filters.sortBy === 'relevance' ? 'selected' : ''}>Most Relevant ∨</option>
-            <option value="newest" ${state.filters.sortBy === 'newest' ? 'selected' : ''}>Newest ∨</option>
-            <option value="expiring" ${state.filters.sortBy === 'expiring' ? 'selected' : ''}>Expiring Soon ∨</option>
-            <option value="discussed" ${state.filters.sortBy === 'discussed' ? 'selected' : ''}>Most Discussed ∨</option>
+            <option value="relevance" ${state.filters.sortBy === 'relevance' ? 'selected' : ''}>Most relevant</option>
+            <option value="newest" ${state.filters.sortBy === 'newest' ? 'selected' : ''}>Newest</option>
+            <option value="expiring" ${state.filters.sortBy === 'expiring' ? 'selected' : ''}>Expiring soon</option>
+            <option value="discussed" ${state.filters.sortBy === 'discussed' ? 'selected' : ''}>Most discussed</option>
           </select>
         </div>
       </div>
@@ -198,11 +207,11 @@ function renderFeedView(container) {
           filtered.length > 0
             ? filtered.map((post) => renderPostCardHtml(post)).join('')
             : `
-              <div style="text-align:center;padding:48px 20px;color:var(--text-muted);background:var(--bg-sidebar);border-radius:var(--radius-lg);border:1px solid var(--border-color);">
-                <div style="font-size:32px;margin-bottom:8px;">📥</div>
-                <h3 style="font-size:15px;font-weight:700;color:var(--text-main);">No matching information</h3>
-                <p style="font-size:12px;margin:4px 0 14px 0;">Try adjusting your filters or search keywords.</p>
-                <button class="filter-pill active" onclick="state.resetFilters()">Clear Filters</button>
+              <div class="empty-state">
+                ${icon('inbox', '2xl')}
+                <h3>No matching information</h3>
+                <p>Try adjusting your filters or search keywords.</p>
+                <button class="filter-pill active" onclick="state.resetFilters()">Clear filters</button>
               </div>
             `
         }
@@ -210,13 +219,12 @@ function renderFeedView(container) {
     </div>
   `;
 
-  // Attach dropdown change listeners
   document.getElementById('filter-sort-select')?.addEventListener('change', (e) => {
     state.setFilter('sortBy', e.target.value);
   });
 }
 
-// 4. Render Single Post Card (Exact Match to Screenshot)
+// 4. Render Single Post Card (With Image & PDF attachment support)
 function renderPostCardHtml(post) {
   const authorInitial = post.author.initial || post.author.name.charAt(0).toUpperCase();
   const avatarColor = post.author.color || 'purple';
@@ -229,9 +237,8 @@ function renderPostCardHtml(post) {
   }) + ', ' + new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const categoryPath = post.categoryPath || `${post.categoryId} > ${post.channelName}`;
-
-  // Image box on the right
   const hasImage = post.images && post.images.length > 0;
+  const hasAttachments = post.attachments && post.attachments.length > 0;
 
   return `
     <article class="post-card">
@@ -247,7 +254,7 @@ function renderPostCardHtml(post) {
 
           <div class="card-header-actions">
             <span class="status-pill-badge ${statusClass}">${post.status}</span>
-            <button class="dots-menu-btn" onclick="openReportModal('${post.id}')" title="More options / Report">•••</button>
+            <button class="dots-menu-btn" onclick="openReportModal('${post.id}')" title="More options / Report">${icon('more', 'sm')}</button>
           </div>
         </div>
 
@@ -256,22 +263,43 @@ function renderPostCardHtml(post) {
 
         <!-- Location & Category Row -->
         <div class="card-sub-info-row">
-          ${post.location ? `<span class="location-tag">📍 ${post.location}</span>` : ''}
-          <span class="category-breadcrumb-pill">🎓 ${categoryPath}</span>
+          ${post.location ? `<span class="location-tag">${icon('mapPin', 'xs')} ${post.location}</span>` : ''}
+          <span class="category-breadcrumb-pill">${icon('graduationCap', 'xs')} ${categoryPath}</span>
         </div>
 
         <!-- Description -->
         <p class="card-description-paragraph">${post.description}</p>
 
+        <!-- PDF Attachments if any -->
+        ${
+          hasAttachments
+            ? `
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;">
+                ${post.attachments
+                  .map(
+                    (att) => `
+                  <a href="${att.url || '#'}" download="${att.name}" target="_blank" class="pdf-attachment-badge" onclick="event.stopPropagation()">
+                    ${icon('fileText', 'xs')}
+                    <span style="font-weight:600;">${att.name}</span>
+                    <span style="color:var(--text-dim);font-size:10px;">(${att.size || 'PDF'})</span>
+                  </a>
+                `
+                  )
+                  .join('')}
+              </div>
+            `
+            : ''
+        }
+
         <!-- Deadline / Resolution Badge & Tags Row -->
         <div class="card-badges-row">
           ${
             post.deadlineLabel
-              ? `<span class="deadline-pill-tag">📅 ${post.deadlineLabel}</span>`
+              ? `<span class="deadline-pill-tag">${icon('calendar', 'xs')} ${post.deadlineLabel}</span>`
               : post.resolutionLabel
-              ? `<span class="expected-resolution-pill">⏰ ${post.resolutionLabel}</span>`
+              ? `<span class="expected-resolution-pill">${icon('clock', 'xs')} ${post.resolutionLabel}</span>`
               : post.deadline
-              ? `<span class="deadline-pill-tag">📅 Deadline: ${new Date(post.deadline).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>`
+              ? `<span class="deadline-pill-tag">${icon('calendar', 'xs')} Deadline: ${new Date(post.deadline).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>`
               : ''
           }
 
@@ -286,22 +314,22 @@ function renderPostCardHtml(post) {
         <div class="card-footer-row">
           <div class="votes-comments-group">
             <button class="vote-action-btn ${post.validation.userVote === 'useful' ? 'active-up' : ''}" onclick="state.validatePost('${post.id}', 'useful')">
-              <span>👍</span>
+              ${icon('thumbsUp', 'xs')}
               <span>${post.validation.useful}</span>
             </button>
             <button class="vote-action-btn ${post.validation.userVote === 'incorrect' ? 'active-down' : ''}" onclick="state.validatePost('${post.id}', 'incorrect')">
-              <span>👎</span>
+              ${icon('thumbsDown', 'xs')}
               <span>${post.validation.incorrect}</span>
             </button>
             <button class="comments-count-btn" onclick="openDetailModal('${post.id}')">
-              <span>💬</span>
+              ${icon('messageCircle', 'xs')}
               <span>${post.comments.length} Comments</span>
             </button>
           </div>
 
           <button class="btn-view-details" onclick="openDetailModal('${post.id}')">
-            <span>View Details</span>
-            <span>→</span>
+            <span>View details</span>
+            ${icon('arrowRight', 'xs')}
           </button>
         </div>
       </div>
@@ -322,21 +350,21 @@ function renderPostCardHtml(post) {
 
 // 3B. Home View
 function renderHomeView(container) {
-  const activePosts = state.posts.filter((p) => p.status === 'Active').slice(0, 2);
-  const resolvedPosts = state.posts.filter((p) => p.status === 'Resolved').slice(0, 2);
+  const activePosts = state.posts.filter((p) => p.status === 'Active' || p.status === 'ACTIVE').slice(0, 2);
+  const resolvedPosts = state.posts.filter((p) => p.status === 'Resolved' || p.status === 'RESOLVED').slice(0, 2);
 
   container.innerHTML = `
     <div class="feed-header-section">
-      <h1 class="feed-title-line">🏠 Community Home</h1>
+      <h1 class="feed-title-line">${icon('home', 'lg')} Community Home</h1>
       <p class="feed-desc-line">Welcome back, ${state.currentUser.name}. Stay informed with verified neighborhood notices.</p>
     </div>
 
     <div class="feed-cards-scroll">
       <div class="feed-cards-container">
-        <h3 style="font-size:14px;font-weight:700;color:var(--text-main);margin-bottom:4px;">🌟 Active Opportunities & Alerts</h3>
+        <h3 class="section-heading">${icon('star', 'sm')} Active opportunities & alerts</h3>
         ${activePosts.map((p) => renderPostCardHtml(p)).join('')}
 
-        <h3 style="font-size:14px;font-weight:700;color:var(--text-main);margin:16px 0 4px 0;">✅ Recently Resolved</h3>
+        <h3 class="section-heading" style="margin-top:20px;">${icon('checkCircle', 'sm')} Recently resolved</h3>
         ${resolvedPosts.map((p) => renderPostCardHtml(p)).join('')}
       </div>
     </div>
@@ -349,7 +377,7 @@ function renderModerationView(container) {
 
   container.innerHTML = `
     <div class="feed-header-section">
-      <h1 class="feed-title-line">🛡️ Moderation Desk</h1>
+      <h1 class="feed-title-line">${icon('shield', 'lg')} Moderation Desk</h1>
       <p class="feed-desc-line">Audit reported notices, scam flags, and verify resolutions.</p>
     </div>
 
@@ -362,7 +390,7 @@ function renderModerationView(container) {
                   (p) => `
                 <div class="post-card" style="border-left:4px solid #dc2626;">
                   <div class="card-left-content">
-                    <div style="font-size:12px;font-weight:700;color:#dc2626;">🚩 Flagged by Community (${p.reports.length} Reports)</div>
+                    <div style="font-size:12px;font-weight:700;color:#dc2626;">${icon('flag', 'xs')} Flagged by Community (${p.reports.length} Reports)</div>
                     <h2 class="card-main-title">${p.title}</h2>
                     <p class="card-description-paragraph">${p.description}</p>
                     <div style="display:flex;gap:8px;margin-top:8px;">
@@ -374,7 +402,7 @@ function renderModerationView(container) {
               `
                 )
                 .join('')
-            : `<div style="text-align:center;padding:40px;color:var(--text-muted);">✅ Moderation queue is clean.</div>`
+            : `<div class="empty-state">${icon('checkCircle', '2xl')}<h3>Moderation queue is clear</h3><p>No reported notices need review.</p></div>`
         }
       </div>
     </div>
@@ -382,14 +410,13 @@ function renderModerationView(container) {
 }
 
 // ==========================================================================
-// Interactive Modals
+// Interactive Modals (With Image & PDF up to 5 MB Upload Support)
 // ==========================================================================
 
-// Create Modal with Real-time AI Assistant
 function openCreateModal() {
   const root = document.getElementById('modals-root');
-  let selectedTags = [];
-  let uploadedImage = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&auto=format&fit=crop&q=80';
+  let uploadedImages = [];
+  let uploadedPdfs = [];
 
   root.innerHTML = `
     <div class="modal-overlay">
@@ -436,9 +463,41 @@ function openCreateModal() {
             </div>
           </div>
 
+          <!-- File Upload: Images & PDFs (Up to 5 MB) -->
+          <div class="form-group">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <label class="form-label">Attach Images & Documents (PDF / Images up to 5 MB)</label>
+              <span style="font-size:10px;color:var(--text-muted);">Max 5 MB per file</span>
+            </div>
+
+            <div class="file-upload-dropzone" onclick="document.getElementById('file-upload-input').click()">
+              <input type="file" id="file-upload-input" accept="image/*,.pdf" multiple style="display:none;">
+              <div style="margin-bottom:2px;">${icon('upload', 'lg')}</div>
+              <div style="font-size:12px;font-weight:600;color:var(--primary-blue);">Click to upload Image or PDF document</div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">Supports JPG, PNG, WEBP, and PDF files (up to 5 MB)</div>
+            </div>
+
+            <!-- Fast Demo Samples -->
+            <div style="display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap;">
+              <span style="font-size:11px;color:var(--text-muted);">Or add sample:</span>
+              <button type="button" class="filter-pill" style="font-size:11px;padding:2px 8px;" id="btn-add-sample-img">
+                ${icon('camera', 'xs')} Sample Image
+              </button>
+              <button type="button" class="filter-pill" style="font-size:11px;padding:2px 8px;" id="btn-add-sample-pdf">
+                ${icon('fileText', 'xs')} Sample PDF (Brochure)
+              </button>
+            </div>
+
+            <!-- Uploaded Files Preview Chips -->
+            <div id="uploaded-files-container" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
+          </div>
+
           <!-- Live AI Assistant Box -->
           <div style="background:var(--bg-active-pill);padding:12px;border-radius:var(--radius-md);border:1px solid rgba(2, 132, 199, 0.2);display:flex;flex-direction:column;gap:6px;">
-            <div style="font-size:12px;font-weight:700;color:var(--primary-blue);">✨ AI Classification & Moderation Check</div>
+            <div style="font-size:12px;font-weight:700;color:var(--primary-blue);display:flex;align-items:center;gap:4px;">
+              ${icon('sparkles', 'xs')}
+              AI Classification & Moderation Check
+            </div>
             <div id="ai-live-output" style="font-size:12px;color:var(--text-secondary);">
               Type your title and description above to see real-time AI suggestions and safety audits.
             </div>
@@ -459,13 +518,99 @@ function openCreateModal() {
   const updateChOptions = () => {
     const cat = state.categories.find((c) => c.id === catSel.value);
     if (cat) {
-      chSel.innerHTML = cat.channels.map((ch) => `<option value="${ch.id}">#${ch.name}</option>`).join('');
+      const activeChannels = cat.channels.filter((c) => c.status !== 'inactive');
+      chSel.innerHTML = activeChannels.map((ch) => `<option value="${ch.id}">#${ch.name}</option>`).join('');
     }
   };
   catSel.addEventListener('change', updateChOptions);
   updateChOptions();
 
-  // AI Typing Listener
+  // File Upload Handlers (5 MB validation)
+  const fileInput = document.getElementById('file-upload-input');
+  const filesContainer = document.getElementById('uploaded-files-container');
+
+  const renderUploadedFiles = () => {
+    let html = '';
+
+    uploadedImages.forEach((img, idx) => {
+      html += `
+        <div style="position:relative;display:inline-block;">
+          <img src="${img}" style="width:70px;height:50px;object-fit:cover;border-radius:4px;border:1px solid var(--border-color);">
+          <button type="button" style="position:absolute;top:-5px;right:-5px;background:#000;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;" onclick="removeImage(${idx})">✕</button>
+        </div>
+      `;
+    });
+
+    uploadedPdfs.forEach((pdf, idx) => {
+      html += `
+        <div style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-sidebar);border:1px solid var(--border-color);padding:4px 8px;border-radius:var(--radius-md);font-size:11px;">
+          ${icon('fileText', 'xs')}
+          <span style="font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${pdf.name}</span>
+          <span style="color:var(--text-dim);">(${pdf.size})</span>
+          <button type="button" style="background:none;border:none;color:#dc2626;cursor:pointer;font-weight:700;" onclick="removePdf(${idx})">✕</button>
+        </div>
+      `;
+    });
+
+    filesContainer.innerHTML = html;
+  };
+
+  window.removeImage = (idx) => {
+    uploadedImages.splice(idx, 1);
+    renderUploadedFiles();
+  };
+
+  window.removePdf = (idx) => {
+    uploadedPdfs.splice(idx, 1);
+    renderUploadedFiles();
+  };
+
+  fileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+
+    files.forEach((file) => {
+      if (file.size > MAX_SIZE) {
+        alert(`File "${file.name}" exceeds the 5 MB limit (${(file.size / (1024 * 1024)).toFixed(2)} MB). Please select a file under 5 MB.`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target.result;
+        const sizeFormatted = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+
+        if (file.type.startsWith('image/')) {
+          uploadedImages.push(result);
+        } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+          uploadedPdfs.push({
+            name: file.name,
+            size: sizeFormatted,
+            url: result,
+          });
+        }
+        renderUploadedFiles();
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  // Sample Photo & PDF presets
+  document.getElementById('btn-add-sample-img').onclick = () => {
+    uploadedImages.push('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&auto=format&fit=crop&q=80');
+    renderUploadedFiles();
+  };
+
+  document.getElementById('btn-add-sample-pdf').onclick = () => {
+    uploadedPdfs.push({
+      name: 'Official_Announcement_Guidelines_2026.pdf',
+      size: '1.8 MB',
+      url: '#',
+    });
+    renderUploadedFiles();
+  };
+
+  // Live AI Typing Listener
   const titleInp = document.getElementById('inp-title');
   const descInp = document.getElementById('inp-desc');
   const aiOutput = document.getElementById('ai-live-output');
@@ -483,8 +628,10 @@ function openCreateModal() {
 
       aiOutput.innerHTML = `
         <div><strong>Suggested Channel:</strong> ${classification.categoryName} > #${classification.channelName}</div>
-        <div style="color:${safety.score === 'SAFE' ? '#16a34a' : '#d97706'};font-weight:600;">
-          ${safety.score === 'SAFE' ? '🟢 Safe to Publish' : '🟡 Requires Review'}: ${safety.reasons.join(', ')}
+        <div style="color:${safety.score === 'SAFE' ? '#16a34a' : '#d97706'};font-weight:600;display:flex;align-items:center;gap:4px;">
+          ${safety.score === 'SAFE'
+            ? '<img src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20green%20circle%20dot%20healthy%20online%20status%20icon%20corporate%20clean%20minimal%20white%20background&image_size=square" alt="" class="ai-icon ai-icon-xs"> Safe to Publish'
+            : '<img src="https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=simple%20flat%202D%20yellow%20circle%20dot%20warning%20review%20status%20icon%20corporate%20clean%20minimal%20white%20background&image_size=square" alt="" class="ai-icon ai-icon-xs"> Requires Review'}: ${safety.reasons.join(', ')}
         </div>
       `;
 
@@ -516,7 +663,8 @@ function openCreateModal() {
       deadlineLabel: deadlineText ? `Deadline: ${deadlineText}` : undefined,
       categoryPath: `${category} > ${channel}`,
       status: 'Active',
-      images: [uploadedImage],
+      images: uploadedImages,
+      attachments: uploadedPdfs,
     });
 
     closeModals();
@@ -529,13 +677,15 @@ function openDetailModal(postId) {
   const post = state.posts.find((p) => p.id === postId);
   if (!post) return;
 
+  const hasAttachments = post.attachments && post.attachments.length > 0;
   const root = document.getElementById('modals-root');
+
   root.innerHTML = `
     <div class="modal-overlay">
       <div class="modal-dialog" style="max-width:650px;">
         <div class="modal-header">
           <div class="card-sub-info-row">
-            <span class="category-breadcrumb-pill">🎓 ${post.categoryPath || post.channelName}</span>
+            <span class="category-breadcrumb-pill">${icon('graduationCap', 'xs')} ${post.categoryPath || post.channelName}</span>
             <span class="status-pill-badge ${(post.status || 'active').toLowerCase()}">${post.status}</span>
           </div>
           <button class="dots-menu-btn" onclick="closeModals()">✕</button>
@@ -552,9 +702,37 @@ function openDetailModal(postId) {
 
           <p class="card-description-paragraph" style="font-size:14px;line-height:1.6;">${post.description}</p>
 
+          <!-- Images -->
           ${
             post.images && post.images.length > 0
               ? `<div><img src="${post.images[0]}" style="width:100%;max-height:240px;object-fit:cover;border-radius:var(--radius-lg);cursor:pointer;" onclick="openLightbox('${post.images[0]}')"></div>`
+              : ''
+          }
+
+          <!-- PDF Attachments -->
+          ${
+            hasAttachments
+              ? `
+                <div style="background:var(--bg-sidebar);padding:12px;border-radius:var(--radius-md);border:1px solid var(--border-color);">
+                  <div style="font-size:12px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:4px;">
+                    ${icon('fileText', 'xs')}
+                    Official PDF Attachments:
+                  </div>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    ${post.attachments
+                      .map(
+                        (att) => `
+                      <a href="${att.url || '#'}" download="${att.name}" target="_blank" class="pdf-attachment-badge">
+                        ${icon('fileText', 'xs')}
+                        <span style="font-weight:600;">${att.name}</span>
+                        <span style="color:var(--text-dim);">(${att.size || 'PDF'})</span>
+                      </a>
+                    `
+                      )
+                      .join('')}
+                  </div>
+                </div>
+              `
               : ''
           }
 
@@ -586,8 +764,12 @@ function openDetailModal(postId) {
         </div>
 
         <div class="modal-footer">
-          <button class="filter-pill" onclick="openResolveModal('${post.id}')">✓ Mark Resolved</button>
-          <button class="filter-pill" onclick="openReportModal('${post.id}')">🚩 Report</button>
+          <button class="filter-pill" onclick="openResolveModal('${post.id}')">
+            ${icon('checkCircle', 'xs')} Mark Resolved
+          </button>
+          <button class="filter-pill" onclick="openReportModal('${post.id}')">
+            ${icon('flag', 'xs')} Report
+          </button>
           <button class="filter-pill active" onclick="closeModals()">Close</button>
         </div>
       </div>
@@ -608,13 +790,12 @@ function openDetailModal(postId) {
 function openResolveModal(postId) {
   const post = state.posts.find((p) => p.id === postId);
   if (!post) return;
-
   const root = document.getElementById('modals-root');
   root.innerHTML = `
     <div class="modal-overlay">
       <div class="modal-dialog" style="max-width:440px;">
         <div class="modal-header">
-          <div class="modal-title">✓ Mark Problem as Resolved</div>
+          <div class="modal-title">${icon('checkCircle', 'sm')} Mark Problem as Resolved</div>
           <button class="dots-menu-btn" onclick="closeModals()">✕</button>
         </div>
         <form id="resolve-form" class="modal-body">
@@ -644,13 +825,12 @@ function openResolveModal(postId) {
 function openReportModal(postId) {
   const post = state.posts.find((p) => p.id === postId);
   if (!post) return;
-
   const root = document.getElementById('modals-root');
   root.innerHTML = `
     <div class="modal-overlay">
       <div class="modal-dialog" style="max-width:440px;">
         <div class="modal-header">
-          <div class="modal-title">🚩 Report Notice</div>
+          <div class="modal-title">${icon('flag', 'sm')} Report Notice</div>
           <button class="dots-menu-btn" onclick="closeModals()">✕</button>
         </div>
         <form id="report-form" class="modal-body">

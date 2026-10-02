@@ -1,13 +1,15 @@
 /**
  * CivicPulse - Initial Community Dataset
  * Pure Plain JavaScript Data Store (Matching UI Mockup)
+ * Stroke SVG icons (loaded via icons.js)
  */
 
 const INITIAL_CATEGORIES = [
   {
     id: 'GENERAL',
     name: 'GENERAL',
-    icon: '📢',
+    icon: 'megaphone',
+    iconKey: 'megaphone',
     channels: [
       { id: 'announcements', name: 'announcements', categoryId: 'GENERAL', description: 'Official municipal circulars, public notices, and verified announcements' },
       { id: 'community-forum', name: 'community-forum', categoryId: 'GENERAL', description: 'Open discussion forum for local neighbourhood affairs and queries' },
@@ -16,7 +18,8 @@ const INITIAL_CATEGORIES = [
   {
     id: 'EDUCATION',
     name: 'EDUCATION',
-    icon: '🎓',
+    icon: 'graduationCap',
+    iconKey: 'graduationCap',
     channels: [
       { id: 'internships', name: 'internships', categoryId: 'EDUCATION', description: 'Internship opportunities, placement updates and career-related information.' },
       { id: 'scholarships', name: 'scholarships', categoryId: 'EDUCATION', description: 'Government, merit-based, and need-based scholarship grants' },
@@ -27,7 +30,8 @@ const INITIAL_CATEGORIES = [
   {
     id: 'MEDICAL',
     name: 'MEDICAL',
-    icon: '➕',
+    icon: 'cross',
+    iconKey: 'cross',
     channels: [
       { id: 'medical-help', name: 'medical-help', categoryId: 'MEDICAL', description: 'Doctor availability, specialized care assistance, and pharmacy stocks' },
       { id: 'blood-donation', name: 'blood-donation', categoryId: 'MEDICAL', description: 'Urgent blood requirements and nearby donor registry appeals' },
@@ -37,7 +41,8 @@ const INITIAL_CATEGORIES = [
   {
     id: 'LOCAL_ISSUES',
     name: 'LOCAL ISSUES',
-    icon: '⚠️',
+    icon: 'alert',
+    iconKey: 'alert',
     channels: [
       { id: 'roads', name: 'roads', categoryId: 'LOCAL_ISSUES', description: 'Potholes, road closures, diversions, and traffic disruptions' },
       { id: 'water', name: 'water', categoryId: 'LOCAL_ISSUES', description: 'Water pipeline maintenance, cutoffs, tanker schedules, and purity alerts' },
@@ -48,7 +53,8 @@ const INITIAL_CATEGORIES = [
   {
     id: 'LOST_FOUND',
     name: 'LOST & FOUND',
-    icon: '🔍',
+    icon: 'search',
+    iconKey: 'search',
     channels: [
       { id: 'lost-items', name: 'lost-items', categoryId: 'LOST_FOUND', description: 'Report misplaced personal effects, documents, electronics, or pets' },
       { id: 'found-items', name: 'found-items', categoryId: 'LOST_FOUND', description: 'Recovered belongings waiting for rightful owners at local checkpoints' },
@@ -57,13 +63,28 @@ const INITIAL_CATEGORIES = [
   {
     id: 'EVENTS',
     name: 'EVENTS',
-    icon: '📅',
+    icon: 'calendar',
+    iconKey: 'calendar',
     channels: [
       { id: 'local-events', name: 'local-events', categoryId: 'EVENTS', description: 'Neighborhood cultural festivals, farmers markets, and town halls' },
       { id: 'college-events', name: 'college-events', categoryId: 'EVENTS', description: 'Inter-college symposiums, tech fests, sports meets, and cultural nights' },
     ],
   },
 ];
+
+function iconImg(nameOrUrl, size = 'sm') {
+  if (!nameOrUrl) return '';
+  if (typeof icon === 'function' && ICON_PATHS && ICON_PATHS[nameOrUrl]) {
+    return icon(nameOrUrl, size);
+  }
+  const mapped = CATEGORY_ICONS && Object.values(CATEGORY_ICONS).includes(nameOrUrl) ? nameOrUrl : 'search';
+  return typeof icon === 'function' ? icon(mapped, size) : '';
+}
+
+function categoryIconImg(cat, size = 'sm') {
+  const key = cat?.iconKey || cat?.icon || CATEGORY_ICONS?.[cat?.id] || 'search';
+  return icon(key, size);
+}
 
 const INITIAL_POSTS = [
   {

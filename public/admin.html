@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicPulse — Admin &amp; Channel Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="admin-body">
+  <div class="app-container">
+    <header class="header-bar admin-header-bar">
+      <div class="brand-wrapper" onclick="adminState.setView('OVERVIEW')">
+        <div class="brand-pin-icon" data-icon="shieldCheck" data-size="md"></div>
+        <div>
+          <div class="brand-title-text">
+            CivicPulse
+            <span class="admin-badge">Admin</span>
+          </div>
+          <div class="brand-sub-text">Trust, Safety &amp; Channel Management</div>
+        </div>
+      </div>
+
+      <div class="admin-demo-banner">
+        <span data-icon="key" data-size="xs"></span>
+        <span><strong>Demo access</strong> — Priya Desai, Senior Civic Moderator</span>
+      </div>
+
+      <div class="header-right-actions">
+        <a href="index.html" class="btn btn-secondary">
+          <span data-icon="arrowLeft" data-size="xs"></span>
+          <span>Public portal</span>
+        </a>
+
+        <button class="header-icon-btn" id="btn-admin-reset" title="Reset to initial sample dataset">
+          <span data-icon="refresh" data-size="md"></span>
+        </button>
+
+        <button class="header-icon-btn" id="btn-admin-theme" title="Toggle light / dark theme"></button>
+
+        <div class="header-user-profile">
+          <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80" alt="avatar" class="header-user-avatar">
+          <div>
+            <div class="header-user-name">Priya Desai</div>
+            <div class="header-user-role">Admin / Moderator</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-wrapper">
+      <aside class="left-sidebar admin-sidebar">
+        <div class="sidebar-scroll-content">
+          <div class="sidebar-label">Moderation &amp; channels</div>
+
+          <div class="top-nav-group">
+            <div class="nav-pill-item" id="nav-adm-overview" onclick="adminState.setView('OVERVIEW')">
+              <span class="nav-pill-icon" data-icon="chart" data-size="md"></span>
+              <span>Overview</span>
+            </div>
+            <div class="nav-pill-item" id="nav-adm-channels" onclick="adminState.setView('CHANNELS')">
+              <span class="nav-pill-icon" data-icon="folder" data-size="md"></span>
+              <span>Channels</span>
+              <span class="nav-count" id="badge-channel-count">0</span>
+            </div>
+            <div class="nav-pill-item" id="nav-adm-reported" onclick="adminState.setView('REPORTED')">
+              <span class="nav-pill-icon" data-icon="flag" data-size="md"></span>
+              <span>Reported queue</span>
+              <span class="nav-count danger" id="badge-reported-count">0</span>
+            </div>
+            <div class="nav-pill-item" id="nav-adm-ai" onclick="adminState.setView('AI_FLAGS')">
+              <span class="nav-pill-icon" data-icon="bot" data-size="md"></span>
+              <span>AI safety flags</span>
+              <span class="nav-count warn" id="badge-ai-count">0</span>
+            </div>
+            <div class="nav-pill-item" id="nav-adm-resolved" onclick="adminState.setView('RESOLVED')">
+              <span class="nav-pill-icon" data-icon="checkCircle" data-size="md"></span>
+              <span>Resolution audits</span>
+              <span class="nav-count ok" id="badge-resolved-count">0</span>
+            </div>
+            <div class="nav-pill-item" id="nav-adm-all" onclick="adminState.setView('ALL_POSTS')">
+              <span class="nav-pill-icon" data-icon="files" data-size="md"></span>
+              <span>All notices</span>
+            </div>
+          </div>
+
+          <div class="sidebar-label">System</div>
+
+          <div class="top-nav-group">
+            <div class="nav-pill-item" id="nav-adm-settings" onclick="adminState.setView('SETTINGS')">
+              <span class="nav-pill-icon" data-icon="settings" data-size="md"></span>
+              <span>LLM engine settings</span>
+            </div>
+          </div>
+
+          <div class="sidebar-health">
+            <div style="font-weight:650;color:var(--text-main);display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+              <span class="health-dot"></span>
+              <span>Moderation API</span>
+            </div>
+            <div id="adm-engine-label" style="color:var(--text-muted);line-height:1.3;">
+              Checking status...
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="center-feed-area" id="admin-main-area"></main>
+    </div>
+  </div>
+
+  <div id="admin-modals-root"></div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
