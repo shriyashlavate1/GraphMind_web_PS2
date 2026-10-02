@@ -7,6 +7,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Apply initial theme
   state.applyTheme();
 
+  if (state.currentUser && state.currentUser.role === 'Admin') {
+    window.location.href = 'admin.html';
+    return;
+  }
+
   // Check backend server config
   const config = await API.getConfig();
   console.log('[CivicPulse] Initialized with backend engine:', config.engineName);
@@ -155,10 +160,6 @@ function renderRightSidebar() {
         <div style="font-size:11.5px;color:var(--text-muted);line-height:1.45;">
           AI safety moderation active. Content is screened for fraud, scam handles, and unverified solicitations.
         </div>
-        <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-dim);border-top:1px solid var(--border-color);padding-top:8px;">
-          <span>Moderator: Priya Desai</span>
-          <a href="admin.html" style="color:var(--primary-blue);text-decoration:none;font-weight:600;">Mod Desk &rarr;</a>
-        </div>
       </div>
     </div>
   `;
@@ -240,28 +241,6 @@ function toggleProfileMenu() {
         <div class="role-badge-chip ${roleBadgeClass}" style="display:inline-block;margin-top:4px;font-size:10px;">${role}</div>
       </div>
     </div>
-
-    <div style="font-size:11px;font-weight:650;color:var(--text-muted);text-transform:uppercase;margin:4px 0 2px 4px;">Quick Switch Demo Role</div>
-
-    <button class="profile-menu-item" onclick="handleRoleSwitch('Resident')">
-      <span>👤</span>
-      <span>Resident (Rahul Sharma)</span>
-    </button>
-    <button class="profile-menu-item" onclick="handleRoleSwitch('Moderator')">
-      <span>🛡️</span>
-      <span>Moderator (Priya Desai)</span>
-    </button>
-    <button class="profile-menu-item" onclick="handleRoleSwitch('Admin')">
-      <span>⚡</span>
-      <span>Admin (Vikram Mehta)</span>
-    </button>
-
-    <div style="border-top:1px solid var(--border-color);margin:4px 0;"></div>
-
-    <a href="admin.html" class="profile-menu-item">
-      <span data-icon="shieldCheck" data-size="xs"></span>
-      <span>Admin &amp; Moderation Desk</span>
-    </a>
 
     <a href="landing.html" class="profile-menu-item">
       <span data-icon="home" data-size="xs"></span>

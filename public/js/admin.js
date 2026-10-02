@@ -147,6 +147,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Apply theme
   state.applyTheme();
 
+  if (state.currentUser && state.currentUser.role === 'Resident') {
+    window.location.href = 'index.html';
+    return;
+  }
+
   // Fetch backend LLM config
   adminState.engineConfig = await API.getConfig();
   const engineLbl = document.getElementById('adm-engine-label');
@@ -216,27 +221,9 @@ function toggleAdminProfileMenu() {
       </div>
     </div>
 
-    <div style="font-size:11px;font-weight:650;color:var(--text-muted);text-transform:uppercase;margin:4px 0 2px 4px;">Quick Switch Demo Role</div>
 
-    <button class="profile-menu-item" onclick="handleAdminRoleSwitch('Resident')">
-      <span>👤</span>
-      <span>Resident (Rahul Sharma)</span>
-    </button>
-    <button class="profile-menu-item" onclick="handleAdminRoleSwitch('Moderator')">
-      <span>🛡️</span>
-      <span>Moderator (Priya Desai)</span>
-    </button>
-    <button class="profile-menu-item" onclick="handleAdminRoleSwitch('Admin')">
-      <span>⚡</span>
-      <span>Admin (Vikram Mehta)</span>
-    </button>
 
     <div style="border-top:1px solid var(--border-color);margin:4px 0;"></div>
-
-    <a href="index.html" class="profile-menu-item">
-      <span data-icon="feed" data-size="xs"></span>
-      <span>Public Information Feed</span>
-    </a>
 
     <a href="landing.html" class="profile-menu-item">
       <span data-icon="home" data-size="xs"></span>
